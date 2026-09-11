@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+  <title>⚓ WHITBY LIGHTHOUSE CONSPIRACY</title>
+  <!-- External libraries -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Cormorant+Garamond:wght@400;600&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+  <!-- Our CSS -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ========== CINEMATIC OPENING (replaces old start menu) ========== -->
+  <div id="startMenu" class="start-menu">
+    <!-- SCENE 1: STICKMAN -->
+    <div id="scene-stickman">
+      <div class="header">
+        <div id="main-title">Detective Files:</div>
+        <div class="title-line"></div>
+      </div>
+
+      <canvas id="heistCanvas" width="800" height="500"></canvas>
+
+      <div class="footer">
+        <div id="sub-title">
+          <span class="letter" style="--delay: 2.20s">L</span>
+          <span class="letter" style="--delay: 2.45s">i</span>
+          <span class="letter" style="--delay: 2.70s">n</span>
+          <span class="letter" style="--delay: 2.95s">c</span>
+          <span class="letter" style="--delay: 3.20s">o</span>
+          <span class="letter" style="--delay: 3.45s">l</span>
+          <span class="letter" style="--delay: 3.70s">n</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCENE 2: NOCTURNE -->
+    <div id="scene-nocturne">
+      <div class="room off no-select" id="room">
+
+        <div class="window-wrapper">
+          <div class="window-frame">
+            <div class="frame-corner tl"></div>
+            <div class="frame-corner tr"></div>
+            <div class="frame-corner bl"></div>
+            <div class="frame-corner br"></div>
+            <div class="window-glass">
+              <div class="sky"></div>
+              <div class="stars" id="stars"></div>
+              <div class="city-skyline"></div>
+              <div class="city-lights"></div>
+              <div class="mist"></div>
+              <canvas id="rainCanvas"></canvas>
+              <div class="glass-reflection"></div>
+              <div class="mullions">
+                <div class="mullion-h mullion-h-1"></div>
+                <div class="mullion-h mullion-h-2"></div>
+                <div class="mullion-v mullion-v-1"></div>
+                <div class="mullion-v mullion-v-2"></div>
+                <div class="mullion-v mullion-v-3"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="desk">
+          <div class="table-top">
+            <div class="table-glow" id="tableGlow"></div>
+          </div>
+          <div class="legs">
+            <div class="leg leg-1"></div>
+            <div class="leg leg-2"></div>
+            <div class="leg leg-3"></div>
+            <div class="leg leg-4"></div>
+            <div class="leg-brace"></div>
+          </div>
+          <div class="lamp" id="lamp">
+            <div class="light-glow" id="lightGlow"></div>
+            <div class="lamp-arm"></div>
+            <div class="lamp-stand"></div>
+            <div class="lamp-shade">
+              <div class="shade-glow" id="shadeGlow"></div>
+            </div>
+            <div class="lamp-bulb" id="lampBulb"></div>
+            <div class="chain" id="chain">
+              <div class="chain-ball"></div>
+            </div>
+            <div class="lamp-base"></div>
+          </div>
+        </div>
+
+        <!-- MENU – IDs match existing game functions -->
+        <div class="ui-menu">
+          <div class="item-wrap"><a class="item" id="continueGameBtn" href="#">Continue</a></div>
+          <div class="item-wrap"><a class="item" id="newGameBtn" href="#">New Game</a></div>
+          <div class="item-wrap"><a class="item" id="howToPlayBtn" href="#">How to Play</a></div>
+        </div>
+
+        <div class="dust" id="dustContainer"></div>
+        <div class="ui-title">NOCTURNE</div>
+        <div class="ui-sub">PRIVATE INVESTIGATIONS</div>
+        <div class="instruction" id="instruction">PULL THE CHAIN</div>
+        <div class="vignette"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== GAME WRAPPER (hidden initially) ========== -->
+  <div id="gameWrapper" style="display:none;">
+    <div class="game-container">
+      <!-- Popup area for notifications -->
+      <div id="popupContainer" class="popup-area"></div>
+
+      <!-- Header -->
+      <div class="header">
+        <div class="title"><h1>⚓ THE WHITBY LIGHTHOUSE CONSPIRACY</h1></div>
+        <div class="code-container" id="codeContainer">
+          <div class="code-slot" id="code0"></div>
+          <div class="code-slot" id="code1"></div>
+          <div class="code-slot" id="code2"></div>
+          <div class="code-slot" id="code3"></div>
+          <div class="code-slot" id="code4"></div>
+          <div class="code-slot" id="code5"></div>
+          <div class="code-slot" id="code6"></div>
+        </div>
+        <div class="stats">
+          <div class="stat-item"><div class="stat-value" id="prisonYears">30</div><div class="stat-label">PRISON YEARS</div></div>
+          <div class="stat-item"><div class="stat-value" id="hintsLeft">12</div><div class="stat-label">HINTS LEFT</div></div>
+          <div class="stat-item"><div class="stat-value" id="solvedMain">0/7</div><div class="stat-label">MAIN PUZZLES</div></div>
+          <button id="accuseBtn" class="accuse-btn">⚖️ ACCUSE</button>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tab-bar" id="tabBar">
+        <div class="tab" data-tab="mypc">🖥️ MY PC</div>
+        <div class="tab" data-tab="interviews">🗂️ Interviews</div>
+        <div class="tab locked" data-tab="mainpuzzles">🧩 Main Puzzles</div>
+        <div class="tab locked" data-tab="bonuspuzzles">🎁 Bonus Puzzles</div>
+        <div class="tab" data-tab="newspaper">🗞️ Newspaper</div>
+        <div class="tab" data-tab="mainmenu">🏠 Main Menu</div>
+      </div>
+
+      <!-- Content Panel -->
+      <div class="content-panel" id="content"></div>
+    </div>
+  </div>
+
+  <!-- ========== INFO MODAL (generic) ========== -->
+  <div id="infoModal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <div class="modal-header"><span id="modal-title"></span><span class="close" id="closeModal">&times;</span></div>
+      <div id="modal-info" class="modal-info"></div>
+    </div>
+  </div>
+
+  <!-- ========== CONFIRM MODAL ========== -->
+  <div id="confirmModal" class="modal" style="display:none;">
+    <div class="modal-content" style="max-width:400px; text-align:center;">
+      <div class="modal-header"><span>⚠️ CONFIRM</span><span class="close" id="closeConfirmModal">&times;</span></div>
+      <div id="confirm-info" style="padding:20px; font-size:1.2rem;">
+        Are you sure you want to return to the main menu?<br>
+        Your progress will be saved automatically.
+      </div>
+      <div style="display:flex; gap:20px; justify-content:center; margin:20px 0;">
+        <button id="confirmYesBtn" class="action-btn" style="background:#a13d3d; border:none; color:white; padding:10px 30px; border-radius:8px; cursor:pointer;">YES</button>
+        <button id="confirmNoBtn" class="action-btn" style="background:#4a5b6e; border:none; color:white; padding:10px 30px; border-radius:8px; cursor:pointer;">NO</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== HOW TO PLAY MODAL ========== -->
+  <div id="howModal" class="how-modal" style="display:none;">
+    <div class="how-modal-content">
+      <h2>📜 HOW TO PLAY</h2>
+      <p><strong>🕵️ Your Mission:</strong> Track down the mastermind behind the Whitby Lighthouse conspiracy. Interview suspects, solve puzzles, and collect evidence to unlock the truth.</p>
+      <p><strong>📁 Case File:</strong> Review detective notes, interview transcripts, and important documents. The cryptogram becomes available after solving all main puzzles.</p>
+      <p><strong>🗂️ Interviews:</strong> Ask suspects questions to uncover inconsistencies. Each correct answer moves you closer to the truth.</p>
+      <p><strong>🧩 Main Puzzles:</strong> Solve location-based riddles to reveal encoded digits. These digits unlock the final cryptogram.</p>
+      <p><strong>🎁 Bonus Puzzles:</strong> Optional challenges that provide additional clues and unlock more interview questions.</p>
+      <p><strong>🌐 Using External Resources:</strong> Some puzzles require real-world knowledge. Feel free to use Google Maps, Wikipedia, or any online search to help solve the clues. A detective uses every tool available!</p>
+      <p><strong>💡 Hints:</strong> Use the hint button if you're stuck – each hint costs 2 prison years and 1 hint credit.</p>
+      <p><strong>⚖️ Accuse:</strong> Once the cryptogram is solved, the Accuse button appears. Choose the right suspect to close the case!</p>
+      <div style="margin-top:20px;padding-top:10px;border-top:1px solid #b68b5c;">
+        <p style="font-size:0.85rem;color:#cdba92;">🔍 Good luck, detective. The truth is out there.</p>
+      </div>
+      <button id="closeHowModal" class="close-how-btn">GOT IT</button>
+    </div>
+  </div>
+
+  <!-- ========== JAVASCRIPT (game scripts) ========== -->
+  <script src="js/gameManager.js"></script>
+  <script src="js/puzzlesData.js"></script>
+  <script src="js/modals.js"></script>
+  <script src="js/modals/frontPageModal.js"></script>
+  <script src="js/modals/backPageModal.js"></script>
+  <script src="js/modals/cryptogramModal.js"></script>
+  <script src="js/modals/interviewIntro.js"></script>
+  <script src="js/modals/witnessPopup.js"></script>
+  <script src="js/puzzles/letterPuzzle.js"></script>
+  <script src="js/puzzles/coffeePuzzle.js"></script>
+  <script src="js/puzzles/detectivePuzzle.js"></script>
+  <script src="js/puzzles/detectivePuzzlePC.js"></script>
+  <script src="js/puzzles/shelfPuzzle.js"></script>
+  <script src="js/puzzles/lockerPuzzle.js"></script>
+  <script src="js/puzzles/scalePuzzle.js"></script>
+  <script src="js/puzzles/vaultPuzzle.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/main.js"></script>
+
+  <!-- ========== CINEMATIC OPENING SCRIPT ========== -->
+  <script>
+    // ────────────────────────────────────────────────────────────────
+    //  SCENE 1: STICKMAN + BUILDINGS
+    // ────────────────────────────────────────────────────────────────
+
+    const canvas = document.getElementById('heistCanvas');
+    const ctx = canvas.getContext('2d');
+    const W = 800, H = 500;
+
+    const GROUND_Y = 360;
+    const BUILDING_SPEED_NEAR = 2.8;
+    const BUILDING_SPEED_FAR = 1.2;
+    const NEAR_LOOP = 800 * 2;
+    const FAR_LOOP = 800 * 2;
+
+    class Building {
+      constructor(x, width, height, color, windowColor, windowRows, windowCols, litRatio) {
+        this.x = x;
+        this.width = width;
+        this.height = height;
+        this.color = color;
+        this.windowColor = windowColor;
+        this.windowRows = windowRows || Math.floor(height / 28) + 2;
+        this.windowCols = windowCols || Math.floor(width / 22) + 1;
+        this.litRatio = litRatio || 0.45;
+        this.windows = [];
+        for (let r = 0; r < this.windowRows; r++) {
+          for (let c = 0; c < this.windowCols; c++) {
+            this.windows.push(Math.random() < this.litRatio);
+          }
+        }
+        this.flickerWindows = [];
+        for (let i = 0; i < this.windows.length; i++) {
+          if (Math.random() < 0.12) this.flickerWindows.push(i);
+        }
+      }
+      draw(drawX) {
+        const x = drawX;
+        const y = GROUND_Y - this.height;
+        ctx.fillStyle = this.color;
+        ctx.shadowColor = 'rgba(0,0,0,0.3)';
+        ctx.shadowBlur = 10;
+        ctx.fillRect(x, y, this.width, this.height);
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(x, y, this.width, this.height);
+        const winW = Math.min(14, this.width / (this.windowCols + 1) * 0.6);
+        const winH = Math.min(16, this.height / (this.windowRows + 1) * 0.55);
+        const padX = (this.width - (this.windowCols * (winW + 6)) + 6) / 2;
+        const padY = (this.height - (this.windowRows * (winH + 6)) + 6) / 2;
+        let idx = 0;
+        for (let r = 0; r < this.windowRows; r++) {
+          for (let c = 0; c < this.windowCols; c++) {
+            const wx = x + padX + c * (winW + 6);
+            const wy = y + padY + r * (winH + 6);
+            const isLit = this.windows[idx];
+            ctx.fillStyle = 'rgba(0,0,0,0.5)';
+            ctx.fillRect(wx, wy, winW, winH);
+            if (isLit) {
+              const flicker = this.flickerWindows.includes(idx) ?
+                0.7 + Math.sin(Date.now() / 400 + idx) * 0.25 :
+                1.0;
+              const alpha = 0.6 + 0.4 * flicker;
+              ctx.fillStyle = `rgba(255, 200, 100, ${alpha * 0.85})`;
+              ctx.shadowColor = `rgba(255, 200, 100, ${alpha * 0.25})`;
+              ctx.shadowBlur = 12;
+              ctx.fillRect(wx + 1, wy + 1, winW - 2, winH - 2);
+              ctx.shadowBlur = 0;
+            } else {
+              ctx.fillStyle = 'rgba(30, 40, 60, 0.3)';
+              ctx.fillRect(wx + 1, wy + 1, winW - 2, winH - 2);
+            }
+            idx++;
+          }
+        }
+        ctx.fillStyle = 'rgba(255,255,255,0.03)';
+        ctx.fillRect(x, y, this.width, 4);
+        if (this.height > 140 && Math.random() < 0.3) {
+          ctx.strokeStyle = 'rgba(60,70,90,0.5)';
+          ctx.lineWidth = 2;
+          const ax = x + this.width * 0.3 + Math.random() * this.width * 0.4;
+          ctx.beginPath();
+          ctx.moveTo(ax, y);
+          ctx.lineTo(ax, y - 18 - Math.random() * 18);
+          ctx.stroke();
+          if (Math.random() < 0.3) {
+            ctx.fillStyle = `rgba(255, 80, 80, ${0.3 + Math.random() * 0.4})`;
+            ctx.shadowColor = 'rgba(255,0,0,0.15)';
+            ctx.shadowBlur = 20;
+            ctx.beginPath();
+            ctx.arc(ax, y - 18 - Math.random() * 18, 2.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+          }
+        }
+      }
+    }
+
+    function generateBuildings(layer, count, minW, maxW, minH, maxH, colorPalette) {
+      const buildings = [];
+      let x = -maxW - 20;
+      for (let i = 0; i < count; i++) {
+        const w = minW + Math.random() * (maxW - minW);
+        const h = minH + Math.random() * (maxH - minH);
+        const color = colorPalette[Math.floor(Math.random() * colorPalette.length)];
+        const winColor =
+          `rgb(${180 + Math.random() * 60}, ${140 + Math.random() * 40}, ${60 + Math.random() * 40})`;
+        const litRatio = 0.3 + Math.random() * 0.35;
+        const rows = Math.floor(h / 26) + 1;
+        const cols = Math.floor(w / 20) + 1;
+        const b = new Building(x, w, h, color, winColor, rows, cols, litRatio);
+        buildings.push(b);
+        x += w + 6 + Math.random() * 12;
+      }
+      return buildings;
+    }
+
+    const farColors = ['#141c2b', '#1a2335', '#101826', '#1d2840', '#162032', '#0f1a2a'];
+    const nearColors = ['#0d1520', '#111d2e', '#09121c', '#152236', '#0e1a28', '#1a2a3f', '#0f1d30'];
+
+    let farBuildings = generateBuildings('far', 10, 50, 90, 60, 130, farColors);
+    let nearBuildings = generateBuildings('near', 8, 55, 110, 100, 230, nearColors);
+
+    let scrollOffset = 0;
+    let manX = -100;
+    let phaseTimer = 0;
+    const ENTER_DURATION = 2.0;
+    const RUN_DURATION = 3.0;
+    const EXIT_DURATION = 2.0;
+    const TOTAL_CYCLE = ENTER_DURATION + RUN_DURATION + EXIT_DURATION;
+
+    let time = 0;
+    let jewels = [];
+    let transitionTriggered = false;
+
+    function spawnJewel(x, y) {
+      const colors = ['#f43f5e', '#3b82f6', '#10b981', '#a855f7', '#eab308', '#f97316'];
+      jewels.push({
+        x, y,
+        vx: -1.8 - Math.random() * 2.5,
+        vy: -1.5 - Math.random() * 2.5,
+        size: 3 + Math.random() * 5,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        life: 1.0,
+        decay: 0.015 + Math.random() * 0.025,
+        shape: Math.floor(Math.random() * 3)
+      });
+    }
+
+    function updateJewels() {
+      for (let i = jewels.length - 1; i >= 0; i--) {
+        const j = jewels[i];
+        j.x += j.vx;
+        j.y += j.vy;
+        j.vy += 0.18;
+        j.life -= j.decay;
+        if (j.life <= 0) {
+          jewels.splice(i, 1);
+        }
+      }
+    }
+
+    function drawJewels() {
+      jewels.forEach(j => {
+        ctx.fillStyle = j.color;
+        ctx.globalAlpha = j.life * 0.9;
+        ctx.shadowColor = j.color;
+        ctx.shadowBlur = 18;
+        ctx.beginPath();
+        if (j.shape === 0) {
+          ctx.moveTo(j.x, j.y - j.size);
+          ctx.lineTo(j.x + j.size * 0.8, j.y);
+          ctx.lineTo(j.x, j.y + j.size);
+          ctx.lineTo(j.x - j.size * 0.8, j.y);
+        } else if (j.shape === 1) {
+          ctx.rect(j.x - j.size / 2, j.y - j.size / 2, j.size, j.size);
+        } else {
+          ctx.arc(j.x, j.y, j.size / 1.6, 0, Math.PI * 2);
+        }
+        ctx.closePath();
+        ctx.fill();
+      });
+      ctx.globalAlpha = 1;
+      ctx.shadowBlur = 0;
+    }
+
+    function drawLimb(sx, sy, a1, a2, l1, l2) {
+      const jx = sx + Math.cos(a1) * l1;
+      const jy = sy + Math.sin(a1) * l1;
+      const ex = jx + Math.cos(a1 + a2) * l2;
+      const ey = jy + Math.sin(a1 + a2) * l2;
+      ctx.beginPath();
+      ctx.moveTo(sx, sy);
+      ctx.lineTo(jx, jy);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(jx, jy);
+      ctx.lineTo(ex, ey);
+      ctx.stroke();
+      return { handX: ex, handY: ey };
+    }
+
+    function drawStickman(cx, cy, t) {
+      const intensity = 1.0;
+      const headR = 20;
+      const torso = 62;
+      const uArm = 34;
+      const lArm = 28;
+      const uLeg = 44;
+      const lLeg = 38;
+
+      const bounce = Math.abs(Math.sin(t * 2)) * 7;
+      const hipX = cx;
+      const hipY = cy + bounce;
+      const lean = -0.32;
+      const shX = hipX + Math.sin(lean) * torso;
+      const shY = hipY - Math.cos(lean) * torso;
+      const headX = shX + Math.sin(lean) * (headR + 6);
+      const headY = shY - Math.cos(lean) * (headR + 6);
+
+      const lHip = Math.PI / 2 + Math.sin(t) * intensity + 0.2;
+      const lKnee = (Math.sin(t - Math.PI / 2) + 1) * (intensity * 0.75);
+      const rHip = Math.PI / 2 + Math.sin(t + Math.PI) * intensity + 0.2;
+      const rKnee = (Math.sin(t + Math.PI - Math.PI / 2) + 1) * (intensity * 0.75);
+      const lSh = Math.PI / 2 + Math.sin(t + Math.PI) * intensity * 0.9;
+      const lElbow = -(Math.sin(t) + 1) * 0.55 - 0.3;
+      const rSh = -0.4 + Math.sin(t + Math.PI * 0.3) * 0.15;
+      const rElbow = 2.0 + Math.sin(t + 0.5) * 0.15;
+
+      ctx.strokeStyle = '#f0f4fc';
+      ctx.lineWidth = 5.5;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.shadowColor = 'rgba(100,150,255,0.08)';
+      ctx.shadowBlur = 6;
+
+      drawLimb(hipX, hipY, lHip, lKnee, uLeg, lLeg);
+
+      const bagX = shX - 32;
+      const bagY = shY + 8;
+      const bagR = 30;
+      ctx.shadowBlur = 20;
+      ctx.shadowColor = 'rgba(200,150,50,0.15)';
+      ctx.fillStyle = '#b45309';
+      ctx.beginPath();
+      ctx.arc(bagX, bagY, bagR, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#92400e';
+      ctx.beginPath();
+      ctx.arc(bagX - 4, bagY - 6, bagR * 0.7, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#78350f';
+      ctx.beginPath();
+      ctx.moveTo(shX - 6, shY + 2);
+      ctx.lineTo(bagX + 8, bagY - 14);
+      ctx.lineTo(bagX - 2, bagY - 22);
+      ctx.closePath();
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#fbbf24';
+      ctx.font = 'bold 22px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('$', bagX + 2, bagY + 2);
+
+      if (Math.random() < 0.12) {
+        spawnJewel(bagX - 8 + Math.random() * 16, bagY + 4 + Math.random() * 10);
+      }
+
+      ctx.shadowBlur = 6;
+      ctx.shadowColor = 'rgba(100,150,255,0.06)';
+      ctx.strokeStyle = '#f0f4fc';
+      ctx.lineWidth = 5.5;
+      ctx.beginPath();
+      ctx.moveTo(shX, shY);
+      ctx.lineTo(hipX, hipY);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(headX, headY, headR, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.fillStyle = '#0b111e';
+      ctx.shadowBlur = 0;
+      ctx.beginPath();
+      ctx.arc(headX + 8, headY - 3, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.15)';
+      ctx.beginPath();
+      ctx.arc(headX + 10, headY - 6, 1.8, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.shadowBlur = 6;
+      ctx.shadowColor = 'rgba(100,150,255,0.06)';
+      ctx.strokeStyle = '#f0f4fc';
+      ctx.lineWidth = 5.5;
+      drawLimb(hipX, hipY, rHip, rKnee, uLeg, lLeg);
+      drawLimb(shX, shY, lSh, lElbow, uArm, lArm);
+      drawLimb(shX, shY, rSh, rElbow, uArm, lArm);
+
+      ctx.shadowBlur = 0;
+      ctx.globalAlpha = 0.2;
+      ctx.strokeStyle = '#8aa8dd';
+      ctx.lineWidth = 1.8;
+      for (let i = 0; i < 5; i++) {
+        const ox = -28 - i * 14;
+        const oy = -12 + i * 7 + Math.sin(t + i) * 4;
+        ctx.beginPath();
+        ctx.moveTo(cx + ox, cy - 30 + oy);
+        ctx.lineTo(cx + ox - 18, cy - 30 + oy + 3);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+
+      ctx.shadowBlur = 30;
+      ctx.shadowColor = 'rgba(0,0,0,0.2)';
+      ctx.fillStyle = 'rgba(0,0,0,0.1)';
+      ctx.beginPath();
+      ctx.ellipse(cx, GROUND_Y + 6, 34, 8, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+
+    function drawStreet() {
+      const grad = ctx.createLinearGradient(0, GROUND_Y, 0, H);
+      grad.addColorStop(0, '#1a2332');
+      grad.addColorStop(0.3, '#141c2b');
+      grad.addColorStop(1, '#0b111e');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, GROUND_Y, W, H - GROUND_Y);
+      ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(0, GROUND_Y + 4);
+      ctx.lineTo(W, GROUND_Y + 4);
+      ctx.stroke();
+      ctx.strokeStyle = 'rgba(255,255,200,0.08)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([28, 34]);
+      ctx.lineDashOffset = scrollOffset * 0.5;
+      ctx.beginPath();
+      ctx.moveTo(0, GROUND_Y + 28);
+      ctx.lineTo(W, GROUND_Y + 28);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.strokeStyle = 'rgba(255,255,255,0.02)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(0, GROUND_Y + 2);
+      ctx.lineTo(W, GROUND_Y + 2);
+      ctx.stroke();
+    }
+
+    const stars = [];
+    for (let i = 0; i < 120; i++) {
+      stars.push({
+        x: Math.random() * W,
+        y: Math.random() * (GROUND_Y - 40),
+        r: 0.4 + Math.random() * 1.2,
+        a: 0.2 + Math.random() * 0.6,
+        twinkleSpeed: 0.01 + Math.random() * 0.03
+      });
+    }
+
+    function drawStars() {
+      stars.forEach(s => {
+        const brightness = s.a * (0.7 + 0.3 * Math.sin(Date.now() * s.twinkleSpeed + s.x));
+        ctx.fillStyle = `rgba(255, 255, 240, ${brightness})`;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+
+    function drawMoon() {
+      ctx.fillStyle = 'rgba(240, 235, 210, 0.12)';
+      ctx.shadowColor = 'rgba(200, 200, 180, 0.06)';
+      ctx.shadowBlur = 60;
+      ctx.beginPath();
+      ctx.arc(W - 80, 60, 45, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = 'rgba(240, 235, 210, 0.06)';
+      ctx.shadowBlur = 80;
+      ctx.beginPath();
+      ctx.arc(W - 80, 60, 70, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+
+    function easeInOut(t) {
+      return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+    }
+
+    let prevTimestamp = 0;
+
+    function transitionToNocturne() {
+      if (transitionTriggered) return;
+      transitionTriggered = true;
+
+      const stickmanScene = document.getElementById('scene-stickman');
+      stickmanScene.classList.add('hidden');
+
+      const nocturneScene = document.getElementById('scene-nocturne');
+      nocturneScene.classList.add('active');
+
+      setTimeout(() => {
+        initNocturne();
+      }, 400);
+    }
+
+    function animateStickman(timestamp) {
+      const deltaTime = prevTimestamp ? Math.min((timestamp - prevTimestamp) / 1000, 0.05) : 0.016;
+      prevTimestamp = timestamp;
+
+      phaseTimer += deltaTime;
+
+      if (phaseTimer >= TOTAL_CYCLE && !transitionTriggered) {
+        transitionToNocturne();
+        if (transitionTriggered) {
+          drawStickmanFrame();
+          return;
+        }
+      }
+
+      if (phaseTimer < ENTER_DURATION) {
+        const progress = phaseTimer / ENTER_DURATION;
+        const easedProgress = easeInOut(progress);
+        const startX = -100;
+        const endX = W / 2 - 20;
+        manX = startX + (endX - startX) * easedProgress;
+      } else if (phaseTimer < ENTER_DURATION + RUN_DURATION) {
+        manX = W / 2 - 20;
+      } else if (phaseTimer < TOTAL_CYCLE) {
+        const progress = (phaseTimer - ENTER_DURATION - RUN_DURATION) / EXIT_DURATION;
+        const easedProgress = easeInOut(progress);
+        const startX = W / 2 - 20;
+        const endX = W + 100;
+        manX = startX + (endX - startX) * easedProgress;
+      }
+
+      scrollOffset += BUILDING_SPEED_NEAR;
+      time += 0.065;
+
+      drawStickmanFrame();
+
+      if (!transitionTriggered) {
+        requestAnimationFrame(animateStickman);
+      }
+    }
+
+    function drawStickmanFrame() {
+      ctx.clearRect(0, 0, W, H);
+
+      const skyGrad = ctx.createLinearGradient(0, 0, 0, GROUND_Y);
+      skyGrad.addColorStop(0, '#050b16');
+      skyGrad.addColorStop(0.5, '#0b1424');
+      skyGrad.addColorStop(1, '#131e30');
+      ctx.fillStyle = skyGrad;
+      ctx.fillRect(0, 0, W, GROUND_Y);
+
+      drawStars();
+      drawMoon();
+
+      farBuildings.forEach(b => {
+        let drawX = b.x - scrollOffset * 0.35;
+        if (drawX < -b.width) {
+          drawX += FAR_LOOP;
+          b.x += FAR_LOOP;
+        }
+        b.draw(drawX);
+      });
+
+      nearBuildings.forEach(b => {
+        let drawX = b.x - scrollOffset;
+        if (drawX < -b.width) {
+          drawX += NEAR_LOOP;
+          b.x += NEAR_LOOP;
+        }
+        b.draw(drawX);
+      });
+
+      drawStreet();
+
+      const manY = GROUND_Y - 20;
+      drawStickman(manX, manY, time);
+
+      updateJewels();
+      drawJewels();
+
+      ctx.globalAlpha = 0.06;
+      ctx.fillStyle = '#8aa8dd';
+      for (let i = 0; i < 6; i++) {
+        const px = (manX - 40 - i * 18 + Math.sin(Date.now() / 600 + i * 2) * 6) % W;
+        const py = GROUND_Y - 6 - i * 5 + Math.sin(Date.now() / 500 + i * 1.5) * 3;
+        ctx.beginPath();
+        ctx.arc(px, py, 4 + i * 1.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    // ────────────────────────────────────────────────────────────────
+    //  SCENE 2: NOCTURNE
+    // ────────────────────────────────────────────────────────────────
+
+    let nocturneInitialized = false;
+
+    function initNocturne() {
+      if (nocturneInitialized) return;
+      nocturneInitialized = true;
+
+      const room = document.getElementById('room');
+      const chain = document.getElementById('chain');
+      const bulb = document.getElementById('lampBulb');
+      const glow = document.getElementById('lightGlow');
+      const tableGlow = document.getElementById('tableGlow');
+      const shadeGlow = document.getElementById('shadeGlow');
+      const dustContainer = document.getElementById('dustContainer');
+      const instruction = document.getElementById('instruction');
+
+      let lampOn = false;
+      let isTurningOn = false;
+      let turnOnTimeout = null;
+
+      const starsContainer = document.getElementById('stars');
+      for (let i = 0; i < 100; i++) {
+        const star = document.createElement('div');
+        star.className = 'star';
+        const size = 0.6 + Math.random() * 2.0;
+        star.style.width = size + 'px';
+        star.style.height = size + 'px';
+        star.style.left = Math.random() * 100 + '%';
+        star.style.top = Math.random() * 90 + '%';
+        star.style.setProperty('--duration', (2 + Math.random() * 5) + 's');
+        star.style.animationDelay = Math.random() * 6 + 's';
+        star.style.opacity = 0.2 + Math.random() * 0.6;
+        starsContainer.appendChild(star);
+      }
+
+      const rainCanvas = document.getElementById('rainCanvas');
+      const rctx = rainCanvas.getContext('2d');
+      let rW, rH;
+      let drops = [];
+
+      function resizeRain() {
+        const rect = rainCanvas.parentElement.getBoundingClientRect();
+        rainCanvas.width = rect.width;
+        rainCanvas.height = rect.height;
+        rW = rainCanvas.width;
+        rH = rainCanvas.height;
+        createDrops();
+      }
+
+      function createDrops() {
+        const count = Math.floor((rW * rH) / 2600);
+        drops = [];
+        for (let i = 0; i < count; i++) {
+          drops.push({
+            x: Math.random() * rW,
+            y: Math.random() * rH - rH,
+            speed: 5 + Math.random() * 16,
+            length: 12 + Math.random() * 26,
+            opacity: 0.10 + Math.random() * 0.32,
+            width: 0.4 + Math.random() * 1.5,
+            wind: -0.5 + Math.random() * 1.1,
+          });
+        }
+      }
+
+      function drawRain() {
+        rctx.clearRect(0, 0, rW, rH);
+        for (const d of drops) {
+          rctx.beginPath();
+          rctx.moveTo(d.x, d.y);
+          rctx.lineTo(d.x + d.wind * d.length * 0.25, d.y + d.length);
+          rctx.strokeStyle = `rgba(180, 205, 240, ${d.opacity})`;
+          rctx.lineWidth = d.width;
+          rctx.stroke();
+        }
+        for (const d of drops) {
+          d.y += d.speed;
+          d.x += d.wind * 0.3;
+          if (d.y > rH + 30) {
+            d.y = -20 - Math.random() * 40;
+            d.x = Math.random() * rW;
+            d.speed = 5 + Math.random() * 16;
+            d.length = 12 + Math.random() * 26;
+            d.opacity = 0.10 + Math.random() * 0.32;
+            d.wind = -0.5 + Math.random() * 1.1;
+          }
+          if (d.x < -30) d.x = rW + 30;
+          if (d.x > rW + 30) d.x = -30;
+        }
+        const grad = rctx.createLinearGradient(0, rH * 0.7, 0, rH);
+        grad.addColorStop(0, 'rgba(40, 55, 80, 0)');
+        grad.addColorStop(1, 'rgba(30, 45, 70, 0.10)');
+        rctx.fillStyle = grad;
+        rctx.fillRect(0, rH * 0.7, rW, rH * 0.3);
+        requestAnimationFrame(drawRain);
+      }
+
+      window.addEventListener('resize', resizeRain);
+      resizeRain();
+      drawRain();
+
+      for (let i = 0; i < 35; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        p.style.left = (25 + Math.random() * 50) + '%';
+        p.style.top = (25 + Math.random() * 60) + '%';
+        p.style.animationDuration = (4 + Math.random() * 12) + 's';
+        p.style.animationDelay = Math.random() * 12 + 's';
+        p.style.transform = `scale(${0.4 + Math.random() * 0.9})`;
+        p.style.width = (2 + Math.random() * 3.5) + 'px';
+        p.style.height = p.style.width;
+        dustContainer.appendChild(p);
+      }
+
+      function turnLampOn() {
+        if (lampOn || isTurningOn) return;
+        isTurningOn = true;
+        lampOn = true;
+        instruction.classList.add('hidden');
+        room.classList.remove('off');
+
+        const steps = [
+          { delay: 80, opacity: 0.3 },
+          { delay: 160, opacity: 0.6 },
+          { delay: 240, opacity: 0.3 },
+          { delay: 320, opacity: 0.8 },
+          { delay: 400, opacity: 1.0 },
+        ];
+        let index = 0;
+
+        function applyStep() {
+          if (index >= steps.length) {
+            bulb.classList.add('on');
+            glow.classList.add('on');
+            tableGlow.classList.add('on');
+            shadeGlow.classList.add('on');
+            dustContainer.classList.remove('off');
+            isTurningOn = false;
+            return;
+          }
+          const step = steps[index];
+          const progress = step.opacity;
+          bulb.style.background =
+            `radial-gradient(circle, rgba(255,251,212,${progress * 0.6}) 0%, ` +
+            `rgba(255,214,107,${progress * 0.5}) 25%, ` +
+            `rgba(212,123,33,${progress * 0.4}) 55%, ` +
+            `rgba(76,36,8,${progress * 0.3}) 100%)`;
+          bulb.style.boxShadow =
+            `0 0 ${5 + 8 * progress}px rgba(255,213,107,${progress * 0.5}), ` +
+            `0 0 ${15 + 22 * progress}px rgba(255,189,72,${progress * 0.4}), ` +
+            `0 0 ${30 + 40 * progress}px rgba(255,157,46,${progress * 0.3})`;
+          glow.style.opacity = progress * 0.9;
+          glow.style.background =
+            `radial-gradient(circle, ` +
+            `rgba(255,210,130,${progress * 0.35}) 0%, ` +
+            `rgba(255,180,90,${progress * 0.14}) 35%, ` +
+            `rgba(255,150,60,${progress * 0.05}) 60%, ` +
+            `transparent 80%)`;
+          tableGlow.style.opacity = progress * 0.5;
+          tableGlow.style.background =
+            `radial-gradient(ellipse at 65% 100%, ` +
+            `rgba(255,200,140,${progress * 0.14}) 0%, ` +
+            `rgba(255,180,120,${progress * 0.06}) 40%, ` +
+            `transparent 70%)`;
+          shadeGlow.style.opacity = progress * 0.6;
+          dustContainer.style.opacity = 0.08 + progress * 0.35;
+          index++;
+          const nextDelay = steps[index] ? steps[index].delay - step.delay : 200;
+          turnOnTimeout = setTimeout(applyStep, Math.max(40, nextDelay));
+        }
+        applyStep();
+        setTimeout(() => {
+          bulb.classList.add('on');
+          glow.classList.add('on');
+          tableGlow.classList.add('on');
+          shadeGlow.classList.add('on');
+        }, 500);
+      }
+
+      function turnLampOff() {
+        if (!lampOn && !isTurningOn) return;
+        if (turnOnTimeout) {
+          clearTimeout(turnOnTimeout);
+          turnOnTimeout = null;
+        }
+        isTurningOn = false;
+        lampOn = false;
+        room.classList.add('off');
+        bulb.classList.remove('on');
+        glow.classList.remove('on');
+        tableGlow.classList.remove('on');
+        shadeGlow.classList.remove('on');
+        bulb.style.background = '';
+        bulb.style.boxShadow = '';
+        glow.style.opacity = '0';
+        glow.style.background = '';
+        tableGlow.style.opacity = '0';
+        tableGlow.style.background = '';
+        shadeGlow.style.opacity = '0';
+        dustContainer.style.opacity = '0.06';
+        instruction.classList.remove('hidden');
+      }
+
+      function toggleLamp() {
+        if (lampOn) {
+          turnLampOff();
+        } else {
+          turnLampOn();
+        }
+        chain.classList.add('pull');
+        setTimeout(() => {
+          chain.classList.remove('pull');
+        }, 150);
+      }
+
+      chain.addEventListener('click', toggleLamp);
+      document.addEventListener('keydown', (e) => {
+        if (e.key === ' ' || e.key === 'Enter') {
+          e.preventDefault();
+          toggleLamp();
+        }
+      });
+
+      setInterval(() => {
+        if (!lampOn || isTurningOn) return;
+        if (Math.random() < 0.04) {
+          const flick = 0.5 + Math.random() * 0.5;
+          bulb.style.opacity = flick;
+          glow.style.opacity = 0.4 + flick * 0.5;
+          setTimeout(() => {
+            bulb.style.opacity = '1';
+            glow.style.opacity = '1';
+          }, 60 + Math.random() * 120);
+        }
+      }, 3000);
+
+      // ─── MENU BUTTON HANDLERS (connect to game functions) ───
+
+      const continueBtn = document.getElementById('continueGameBtn');
+      const newGameBtn = document.getElementById('newGameBtn');
+      const howToPlayBtn = document.getElementById('howToPlayBtn');
+
+      // Show/hide Continue based on saved game
+      const saved = localStorage.getItem('whitbyConspiracySave');
+      if (!saved && continueBtn) {
+        continueBtn.style.opacity = '0.4';
+        continueBtn.style.pointerEvents = 'none';
+      }
+
+      if (continueBtn) {
+        continueBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          if (typeof window.continueGame === 'function') {
+            window.continueGame();
+          } else {
+            // fallback
+            window.location.reload();
+          }
+        });
+      }
+
+      if (newGameBtn) {
+        newGameBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          if (typeof window.startNewGame === 'function') {
+            window.startNewGame();
+          } else {
+            window.location.reload();
+          }
+        });
+      }
+
+      if (howToPlayBtn) {
+        howToPlayBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          const modal = document.getElementById('howModal');
+          if (modal) modal.style.display = 'flex';
+        });
+      }
+
+      console.log('%c🌙 Nocturne — pull the chain to begin...', 'color: #d7b477; font-size: 15px;');
+    }
+
+    function resizeCanvas() {
+      const container = canvas.parentElement;
+      const cw = container.clientWidth || window.innerWidth;
+      const ch = container.clientHeight || window.innerHeight;
+      const aspect = 800 / 500;
+      let w = Math.min(cw * 0.96, 800);
+      let h = w / aspect;
+      if (h > ch * 0.88) {
+        h = ch * 0.88;
+        w = h * aspect;
+      }
+      canvas.style.width = w + 'px';
+      canvas.style.height = h + 'px';
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    requestAnimationFrame(animateStickman);
+  </script>
+
+</body>
+</html>

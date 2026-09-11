@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>The Whitby Lighthouse Conspiracy</title>
+<style>
+:root{
+  --ink:#e8dcc0;--ink-soft:#b8a887;--paper:#1e2833;--gold:#d4b072;
+  --red:#c25a4a;--green:#7bb87b;--blue:#6a9bc0;--border:#3a4a58;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:Georgia,'Times New Roman',serif;
+  background:radial-gradient(ellipse at 20% 10%,#2a3a4a 0%,#0e1620 80%);
+  color:var(--ink);min-height:100vh;line-height:1.5;overflow-x:hidden;
+}
+#app{max-width:960px;margin:0 auto;padding:0 12px 40px;min-height:100vh}
+
+.start{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:24px;text-align:center}
+.start h1{font-size:clamp(1.6rem,5vw,2.6rem);color:var(--gold);letter-spacing:2px;text-shadow:0 3px 8px rgba(0,0,0,.8)}
+.start .sub{color:var(--ink-soft);font-style:italic;font-size:.95rem;margin-bottom:14px}
+.menu-btns{display:flex;flex-direction:column;gap:12px;width:100%;max-width:280px}
+.menu-btn{background:linear-gradient(180deg,#2a3a4a,#1a2430);border:1px solid var(--border);color:var(--ink);padding:14px 24px;border-radius:8px;cursor:pointer;font-family:inherit;font-size:1rem;letter-spacing:1px;transition:.15s}
+.menu-btn:hover{background:linear-gradient(180deg,#3a4a5a,#2a3440);border-color:var(--gold)}
+
+.topbar{position:sticky;top:0;z-index:50;background:rgba(14,22,32,.96);backdrop-filter:blur(6px);border-bottom:1px solid var(--border);padding:10px 12px;margin:0 -12px 16px}
+.topbar-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.stat{font-size:.78rem;color:var(--ink-soft);letter-spacing:.5px;white-space:nowrap}
+.stat b{color:var(--ink);font-weight:700;font-size:.95rem;margin-left:4px}
+.codebar{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
+.code-slot{width:22px;height:28px;border:1px solid var(--border);border-radius:4px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;background:rgba(0,0,0,.3);color:var(--gold)}
+.code-slot.filled{background:rgba(212,176,114,.15);border-color:var(--gold)}
+.accuse-btn{background:var(--red);color:#fff;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;font-family:inherit;font-weight:700;font-size:.8rem;letter-spacing:1px;display:none}
+.accuse-btn.show{display:inline-block}
+.accuse-btn:hover{background:#a04a3a}
+
+.tabs{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:0}
+.tab{flex:1 1 auto;min-width:0;padding:10px 12px;text-align:center;background:rgba(30,40,51,.6);border:1px solid var(--border);border-bottom:none;border-radius:8px 8px 0 0;cursor:pointer;font-family:inherit;font-size:.82rem;color:var(--ink-soft);letter-spacing:.5px;transition:.15s;position:relative}
+.tab.active{background:var(--paper);color:var(--ink);border-color:var(--gold)}
+.tab.locked{opacity:.35;cursor:not-allowed}
+.tab:not(.locked):hover{background:rgba(42,58,74,.8)}
+.tab .dot{position:absolute;top:6px;right:8px;width:8px;height:8px;border-radius:50%;background:var(--red);animation:pulse 1.6s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+.panel{background:var(--paper);border:1px solid var(--border);border-radius:0 0 10px 10px;padding:20px;min-height:480px}
+.panel.hidden{display:none}
+
+.subnav{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:10px}
+.subnav button{background:none;border:1px solid transparent;color:var(--ink-soft);padding:6px 12px;cursor:pointer;font-family:inherit;font-size:.82rem;border-radius:6px;letter-spacing:.5px}
+.subnav button.active{background:rgba(212,176,114,.15);color:var(--gold);border-color:var(--gold)}
+.subnav button:not(.active):hover{color:var(--ink)}
+
+.card{background:rgba(22,32,42,.6);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:14px}
+.card h3{color:var(--gold);font-size:1rem;margin-bottom:10px;letter-spacing:1px}
+.card p{font-size:.9rem;color:var(--ink-soft);margin-bottom:10px;line-height:1.6}
+.btn{background:linear-gradient(180deg,#2a3a4a,#1a2430);border:1px solid var(--border);color:var(--ink);padding:9px 18px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:.85rem;letter-spacing:.5px;transition:.15s;margin-right:8px;margin-top:8px}
+.btn:hover:not(:disabled){background:linear-gradient(180deg,#3a4a5a,#2a3440);border-color:var(--gold)}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn.primary{background:linear-gradient(180deg,#8a6a2a,#5a4420);border-color:var(--gold);color:#fff}
+.btn.danger{background:linear-gradient(180deg,#8a3a2a,#5a2418);border-color:#a04a3a;color:#fff}
+.btn.green{background:linear-gradient(180deg,#3a7a4a,#1f4a2f);border-color:var(--green);color:#fff}
+
+/* INTERVIEWS */
+.suspect{border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:14px;background:rgba(22,32,42,.6)}
+.suspect h3{color:var(--gold);margin-bottom:4px}
+.suspect .role{font-size:.8rem;color:var(--ink-soft);margin-bottom:12px;font-style:italic}
+.stress-bar{height:8px;background:rgba(0,0,0,.4);border-radius:4px;overflow:hidden;margin:8px 0}
+.stress-fill{height:100%;background:linear-gradient(90deg,#7bb87b,#d4b072,#c25a4a);transition:width .3s}
+.stress-label{font-size:.75rem;color:var(--ink-soft);display:flex;justify-content:space-between}
+.q-list{list-style:none;display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.q-list button{background:rgba(0,0,0,.25);border:1px solid var(--border);padding:8px 12px;border-radius:6px;cursor:pointer;color:var(--ink);font-family:inherit;font-size:.85rem;text-align:left;width:100%;transition:.15s}
+.q-list button:hover:not(:disabled){background:rgba(212,176,114,.1);border-color:var(--gold)}
+.q-list button:disabled{opacity:.4;cursor:not-allowed}
+.answer-box{background:rgba(0,0,0,.3);border-left:3px solid var(--gold);padding:10px 14px;border-radius:4px;margin-top:6px;font-size:.85rem;color:var(--ink);font-style:italic}
+.blurt{background:rgba(194,90,74,.15);border-left:3px solid var(--red);padding:10px 14px;border-radius:4px;margin-top:10px;font-size:.85rem;color:var(--red);font-style:italic}
+
+/* BONUS GRID */
+.bonus-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-top:12px}
+.bonus-card{background:rgba(22,32,42,.6);border:1px solid var(--border);border-radius:8px;padding:16px;text-align:center;transition:.15s;position:relative}
+.bonus-card:hover:not(.locked){border-color:var(--gold);background:rgba(42,58,74,.6)}
+.bonus-card.locked{opacity:.35;cursor:not-allowed}
+.bonus-card.current{border-color:var(--gold);box-shadow:0 0 20px rgba(212,176,114,.25)}
+.bonus-card.solved{border-color:var(--green);background:rgba(123,184,123,.1)}
+.bonus-card .icon{font-size:2rem;margin-bottom:8px}
+.bonus-card .title{font-size:.88rem;color:var(--gold);font-weight:700;margin-bottom:4px}
+.bonus-card .status{font-size:.72rem;color:var(--ink-soft);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
+.bonus-card button{margin-top:6px;width:100%}
+
+/* IFRAME */
+.iframe-wrap{position:relative;width:100%;height:78vh;min-height:520px;border-radius:8px;overflow:hidden;border:1px solid var(--border);background:#000;margin-top:14px}
+.iframe-wrap iframe{width:100%;height:100%;border:0;display:block}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.9);display:none;align-items:center;justify-content:center;z-index:100;padding:16px}
+.modal-bg.show{display:flex}
+.modal{background:var(--paper);border:2px solid var(--gold);border-radius:12px;padding:24px;max-width:640px;width:100%;max-height:92vh;overflow-y:auto;position:relative}
+.modal h2{color:var(--gold);margin-bottom:14px;letter-spacing:1px;padding-right:30px}
+.modal .close{position:absolute;top:14px;right:14px;background:none;border:none;color:var(--ink-soft);font-size:1.4rem;cursor:pointer;line-height:1;padding:0 4px}
+.modal .close:hover{color:var(--red)}
+.modal p{font-size:.9rem;color:var(--ink-soft);margin-bottom:12px;line-height:1.6}
+.modal input{width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:6px;background:rgba(0,0,0,.3);color:var(--ink);font-family:inherit;font-size:1rem;margin-bottom:12px}
+.modal input:focus{outline:none;border-color:var(--gold)}
+.modal iframe{width:100%;height:70vh;border:1px solid var(--border);border-radius:6px;background:#000}
+
+/* CRYPTO */
+.crypto-grid{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:16px 0}
+.crypto-cell{width:44px;height:52px;border:1px solid var(--border);border-radius:6px;background:rgba(0,0,0,.3);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:.15s}
+.crypto-cell:hover{border-color:var(--gold)}
+.crypto-cell.revealed{background:rgba(212,176,114,.15);border-color:var(--gold);cursor:default}
+.crypto-cell.space{border:none;background:none;width:18px;cursor:default}
+.crypto-cell .num{font-size:.7rem;color:var(--ink-soft)}
+.crypto-cell .letter{font-size:1.1rem;font-weight:700;color:var(--gold)}
+.crypto-progress{height:8px;background:rgba(0,0,0,.4);border-radius:4px;overflow:hidden;margin:12px 0}
+.crypto-progress-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--gold));transition:width .3s}
+.crypto-msg{font-size:.88rem;color:var(--ink-soft);text-align:center;margin-top:8px;font-style:italic}
+
+.msg{padding:10px 14px;border-radius:6px;margin-top:12px;font-size:.88rem;display:none}
+.msg.show{display:block}
+.msg.success{background:rgba(123,184,123,.15);border-left:3px solid var(--green);color:var(--green)}
+.msg.error{background:rgba(194,90,74,.15);border-left:3px solid var(--red);color:var(--red)}
+.msg.info{background:rgba(106,155,192,.15);border-left:3px solid var(--blue);color:var(--ink)}
+
+.victory{position:fixed;inset:0;background:rgba(0,0,0,.95);display:flex;align-items:center;justify-content:center;z-index:200;padding:20px;text-align:center}
+.victory .content{max-width:520px}
+.victory h1{color:var(--gold);font-size:2rem;letter-spacing:4px;margin-bottom:16px}
+.victory p{color:var(--ink);margin-bottom:14px;font-size:.95rem;line-height:1.7}
+.victory .big{font-size:1.5rem;color:var(--green);font-weight:700;margin:20px 0}
+
+@media (max-width:520px){
+  .panel{padding:14px}
+  .crypto-cell{width:34px;height:42px}
+  .crypto-cell .letter{font-size:.95rem}
+  .iframe-wrap{height:70vh;min-height:420px}
+}
+</style>
+</head>
+<body>
+
+<div id="app"></div>
+
+<div class="modal-bg" id="accuseModal">
+  <div class="modal">
+    <button class="close" data-close="accuseModal">×</button>
+    <h2>⚖️ Make Your Accusation</h2>
+    <p>Who is the mastermind behind the Lincoln thefts? Type their full name.</p>
+    <input type="text" id="accuseName" placeholder="Full name…" autocomplete="off">
+    <button class="btn danger" id="accuseSubmit">Accuse</button>
+    <div class="msg" id="accuseMsg"></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="puzzleModal">
+  <div class="modal" style="max-width:900px">
+    <button class="close" data-close="puzzleModal">×</button>
+    <h2 id="puzzleModalTitle">Puzzle</h2>
+    <p id="puzzleModalDesc"></p>
+    <iframe id="puzzleFrame" src="about:blank"></iframe>
+    <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn green" id="puzzleSolvedBtn">✓ I've solved it</button>
+      <button class="btn" id="puzzleCancelBtn">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// FILE PATHS — rename your puzzle files to match these,
+// or edit the paths here
+// ============================================================
+const SRC = {
+  suspects:       'suspects.html',
+  notes:          'notes.html',
+  newsFront:      'newspaper-front.html',
+  newsBack:       'newspaper-back.html',
+  main:           'main-puzzles.html',
+  bonuses: [
+    { file:'bonus-1-braggers.html', title:"The Bragger's Note",      icon:'📜', clue:'Hidden message: WALKER JEWELLERY STORE — the next target.' },
+    { file:'bonus-2-measure.html',  title:'The Measure of a Thief',  icon:'🫗', clue:'Precision pour — 8L in the 10L jug. The thief measures everything.' },
+    { file:'bonus-3-tower.html',    title:"The Mastermind's Tower",  icon:'🗼', clue:'Password found: KEYSTONE. A locked ledger awaits.' },
+    { file:'bonus-4-shelf.html',    title:'The Shelf of Secrets',    icon:'📚', clue:'Spines spell BOOKSHELVES. Someone hides books in plain sight.' },
+    { file:'bonus-5-cabinet.html',  title:'The Cold Case Cabinet',   icon:'🗄️', clue:'Locker 6 holds the real reward. All padlocks decoded.' },
+    { file:'bonus-6-balance.html',  title:'The Balance of Justice',  icon:'⚖️', clue:'Hidden values: ⭐=2, 🔺=4, ⚫=6. Everything weighs out.' }
+  ]
+};
+
+// ============================================================
+// MAIN PUZZLE DATA (mirrored from your main-puzzles.html)
+// ============================================================
+const MAIN_DIGITS = ['3','2','2','0','4','2','3'];
+const MAIN_TITLES = [
+  'The Escape Route',
+  'Two Mischievous Watchers',
+  'Street of Shining Metal',
+  'The Chase Through Lincoln',
+  'The Roar of the Crowd',
+  'Defenders of the Castle',
+  'A Gift of Power'
+];
+
+// ============================================================
+// SUSPECT DATA
+// ============================================================
+const SUSPECTS = {
+  neil: {
+    name:'Neil Down',
+    role:'Former maintenance worker · 47',
+    questions:[
+      {q:'Where were you on the night of the first theft?',
+       a:'"Home. Alone. Watching telly. You can check the logs — I clocked out at six."'},
+      {q:'You kept a key fob after your contract ended. Why?',
+       a:'"Habit. I liked being useful. I never went back there… well, not for anything wrong."'},
+      {q:'Did you ever work with Sienna Clarke?',
+       a:'"The security consultant? Yeah, she walked the sites once or twice. Always scribbling in that notebook of hers. Bit too interested in the alarm zones, if you ask me."'}
+    ],
+    blurt:'"You want to know who\'s been on the radio lately? VEGA. That handle keeps coming up. Whoever uses it knows the sites better than I do."'
+  },
+  sienna: {
+    name:'Sienna Clarke',
+    role:'External security consultant · 39',
+    questions:[
+      {q:'You reviewed three of the affected sites. What did you find?',
+       a:'"Standard weaknesses. Cameras with blind spots, alarm zones with coverage gaps. I flagged them in my reports."'},
+      {q:'Your reports contain inconsistencies with the site logs. Explain.',
+       a:'"Reports are written from walk-throughs. Logs are written by tired guards. Discrepancies happen. It\'s not a crime to be more accurate than the staff."'},
+      {q:'Where were you the night of the second incident?',
+       a:'"I was… reviewing footage. From a remote feed. Nothing suspicious — I still had access."'}
+    ],
+    blurt:'"Do you know what I found in the library system? An IP log from the reference terminal — 2:17 AM, right before the theft. Whoever was in there wasn\'t just reading."'
+  },
+  vincent: {
+    name:'Vincent Hale',
+    role:'Area manager, multiple sites · 56',
+    questions:[
+      {q:'You amended the rota the night of the second incident. Why?',
+       a:'"Staff shortage. Someone called in sick. I covered the shift myself, as managers do."'},
+      {q:'Describe your relationship with the security contractor.',
+       a:'"Professional. I hire them, they do the work. Nothing more. Though I did notice she kept asking about the vault."'},
+      {q:'Financial pressure — how bad is it?',
+       a:'"Bad enough that I sold my second car. But not bad enough to steal. I\'m not that kind of man."'}
+    ],
+    blurt:'"You want a lead? There was a white van outside the fourth site. Plate read WH1TBY."'
+  }
+};
+
+// ============================================================
+// CRYPTOGRAM
+// ============================================================
+const CRYPTO_MSG = 'THE VAULT IS BENEATH THE STAGE OF THE NEW THEATRE ROYAL';
+const CRYPTO_PRE = {2:'E',8:'L',6:'C',7:'S',9:'Y',5:'R'};
+
+// ============================================================
+// STATE
+// ============================================================
+const SAVE_KEY = 'whitby_lighthouse_v2';
+
+function freshState() {
+  return {
+    started:false,
+    prisonYears:30,
+    hintsLeft:12,
+    codeDigits:[null,null,null,null,null,null,null],
+    // phase: 'interview_neil' | 'main' | 'bonus' | 'questions' | 'cryptogram' | 'accuse' | 'won'
+    phase:'interview_neil',
+    currentMain:0,          // 0..6
+    currentBonus:0,         // 0..5 (same as currentMain until all main solved)
+    questionsThisRound:0,
+    stress:{neil:0,sienna:0,vincent:0},
+    asked:{neil:[],sienna:[],vincent:[]},
+    blurts:{neil:false,sienna:false,vincent:false},
+    unlocked:{neil:true,sienna:false,vincent:false},
+    solvedMain:[],
+    solvedBonus:[],
+    cryptoMap:{...CRYPTO_PRE},
+    cryptoReveals:0,
+    cryptoSolved:false,
+    tab:'casefile',
+    subTab:'notes',
+    newsPage:'front'
+  };
+}
+let state = freshState();
+
+function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch(e){} }
+function load() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (raw) { state = Object.assign(freshState(), JSON.parse(raw)); return true; }
+  } catch(e){}
+  return false;
+}
+function hasSave() { return !!localStorage.getItem(SAVE_KEY); }
+function wipe() { localStorage.removeItem(SAVE_KEY); state = freshState(); }
+
+// ============================================================
+// RENDER
+// ============================================================
+const app = document.getElementById('app');
+
+function render() {
+  if (!state.started) return renderStart();
+  app.innerHTML = renderTopBar() + renderTabs() + renderPanels();
+  attachHandlers();
+}
+
+function renderStart() {
+  const cont = hasSave();
+  app.innerHTML = `
+    <div class="start">
+      <h1>⚓ WHITBY LIGHTHOUSE</h1>
+      <div class="sub">The Conspiracy · A Lincoln Detective Case</div>
+      <div class="menu-btns">
+        ${cont ? '<button class="menu-btn" id="btnContinue">▶ Continue</button>' : ''}
+        <button class="menu-btn" id="btnNew">✦ New Game</button>
+        <button class="menu-btn" id="btnHow">? How to Play</button>
+      </div>
+    </div>`;
+  const bC = document.getElementById('btnContinue');
+  if (bC) bC.onclick = () => { if (load()) { state.started = true; render(); } };
+  document.getElementById('btnNew').onclick = () => {
+    wipe(); state.started = true; save(); render();
+  };
+  document.getElementById('btnHow').onclick = () => alert(
+    'THE LOOP:\n' +
+    '  Interview Neil (3 questions)\n' +
+    '  → Main Puzzle 1 → Bonus Puzzle 1\n' +
+    '  → Question Round (3 more questions)\n' +
+    '  → Main Puzzle 2 → Bonus Puzzle 2\n' +
+    '  → ... repeat through all 7\n\n' +
+    'WHAT EACH THING DOES:\n' +
+    '  • Main puzzles record one digit into the code bar.\n' +
+    '  • Bonus puzzles reveal a clue.\n' +
+    '  • Interviews raise stress — above 80% reveals a secret.\n' +
+    '  • All 7 main digits unlock the Cryptogram.\n' +
+    '  • Solve the cryptogram → ACCUSE button appears.\n\n' +
+    'PENALTIES:\n' +
+    '  • Wrong answers and hint use cost 2 prison years.\n' +
+    '  • You have 30 years. Don\'t waste them.'
+  );
+}
+
+function renderTopBar() {
+  const digits = state.codeDigits.map((d) =>
+    d !== null ? `<div class="code-slot filled">${d}</div>` : `<div class="code-slot">?</div>`
+  ).join('');
+  const canAccuse = state.cryptoSolved && state.phase !== 'won';
+  return `
+    <div class="topbar">
+      <div class="topbar-row">
+        <div class="stat">Prison Years <b>${state.prisonYears}</b></div>
+        <div class="stat">Hints <b>${state.hintsLeft}</b></div>
+        <div class="stat">Main <b>${state.solvedMain.length}/7</b></div>
+        <div class="stat">Bonus <b>${state.solvedBonus.length}/6</b></div>
+        <div class="codebar">${digits}</div>
+        <button class="accuse-btn ${canAccuse?'show':''}" id="topAccuse">⚖️ ACCUSE</button>
+      </div>
+    </div>`;
+}
+
+function renderTabs() {
+  const t = state.tab;
+  const dInt = (state.phase==='interview_neil' || state.phase==='questions') ? '<span class="dot"></span>' : '';
+  const dMain = state.phase==='main' ? '<span class="dot"></span>' : '';
+  const dBonus = state.phase==='bonus' ? '<span class="dot"></span>' : '';
+  const mainLocked = (state.phase==='interview_neil');
+  return `
+    <div class="tabs">
+      <div class="tab ${t==='casefile'?'active':''}" data-tab="casefile">📁 Case File</div>
+      <div class="tab ${t==='interviews'?'active':''}" data-tab="interviews">🗂️ Interviews${dInt}</div>
+      <div class="tab ${t==='main'?'active':''} ${mainLocked?'locked':''}" data-tab="main">🧩 Main Puzzles${dMain}</div>
+      <div class="tab ${t==='bonus'?'active':''} ${mainLocked?'locked':''}" data-tab="bonus">🎁 Bonus Puzzles${dBonus}</div>
+    </div>`;
+}
+
+function renderPanels() {
+  return `
+    <div class="panel ${state.tab==='casefile'?'':'hidden'}" id="panel-casefile">${renderCaseFile()}</div>
+    <div class="panel ${state.tab==='interviews'?'':'hidden'}" id="panel-interviews">${renderInterviews()}</div>
+    <div class="panel ${state.tab==='main'?'':'hidden'}" id="panel-main">${renderMain()}</div>
+    <div class="panel ${state.tab==='bonus'?'':'hidden'}" id="panel-bonus">${renderBonus()}</div>
+  `;
+}
+
+function renderCaseFile() {
+  const sub = state.subTab;
+  const cryptoUnlocked = state.solvedMain.length === 7;
+  const subnav = `
+    <div class="subnav">
+      <button class="${sub==='notes'?'active':''}" data-sub="notes">Detective Notes</button>
+      <button class="${sub==='suspects'?'active':''}" data-sub="suspects">Suspects</button>
+      <button class="${sub==='news'?'active':''}" data-sub="news">Daily Newspaper</button>
+      <button class="${sub==='crypto'?'active':''}" data-sub="crypto">${cryptoUnlocked||state.cryptoSolved?'🔓 Cryptogram':'🔒 Cryptogram'}</button>
+      <button class="${sub==='menu'?'active':''}" data-sub="menu">Main Menu</button>
+    </div>`;
+
+  let body = '';
+  if (sub==='notes') {
+    body = `<div class="iframe-wrap"><iframe src="${SRC.notes}"></iframe></div>`;
+  } else if (sub==='suspects') {
+    body = `<div class="iframe-wrap"><iframe src="${SRC.suspects}"></iframe></div>`;
+  } else if (sub==='news') {
+    const src = state.newsPage === 'back' ? SRC.newsBack : SRC.newsFront;
+    body = `
+      <div class="subnav" style="border:none;padding:0;margin-bottom:10px">
+        <button class="${state.newsPage==='front'?'active':''}" data-news="front">Front Page</button>
+        <button class="${state.newsPage==='back'?'active':''}" data-news="back">Back Page (puzzles)</button>
+      </div>
+      <div class="iframe-wrap"><iframe src="${src}"></iframe></div>`;
+  } else if (sub==='crypto') {
+    body = cryptoUnlocked || state.cryptoSolved ? renderCrypto() :
+      `<div class="card"><h3>🔒 Locked</h3><p>Solve all 7 main puzzles to unlock the cryptogram.</p></div>`;
+  } else if (sub==='menu') {
+    body = `
+      <div class="card">
+        <h3>Main Menu</h3>
+        <p>Progress saves automatically.</p>
+        <button class="btn primary" id="btnSaveNow">Save Now</button>
+        <button class="btn danger" id="btnWipe">Delete Save & Restart</button>
+      </div>
+      <div class="card">
+        <h3>Progress</h3>
+        <p>
+          Phase: <b>${state.phase}</b><br>
+          Main solved: <b>${state.solvedMain.length}/7</b><br>
+          Bonus solved: <b>${state.solvedBonus.length}/6</b><br>
+          Questions this round: <b>${state.questionsThisRound}/3</b>
+        </p>
+      </div>`;
+  }
+  return subnav + body;
+}
+
+function renderCrypto() {
+  const numFor = l => l.charCodeAt(0) - 64;
+  let cells = '';
+  for (const ch of CRYPTO_MSG) {
+    if (ch === ' ') { cells += `<div class="crypto-cell space"></div>`; continue; }
+    const n = numFor(ch);
+    const revealed = state.cryptoMap[n] === ch;
+    cells += `<div class="crypto-cell ${revealed?'revealed':''}" data-num="${n}">
+      <div class="num">${n}</div>
+      <div class="letter">${revealed ? ch : '·'}</div>
+    </div>`;
+  }
+  const uniq = new Set(CRYPTO_MSG.replace(/ /g,'').split('').map(numFor));
+  const done = [...uniq].filter(n => state.cryptoMap[n]).length;
+  const pct = Math.round(100*done/uniq.size);
+  const pre = Object.entries(CRYPTO_PRE).map(([n,l]) =>
+    `<span style="display:inline-block;padding:2px 8px;margin:2px;background:rgba(212,176,114,.2);border-radius:4px;font-family:monospace">${n}=${l}</span>`).join('');
+  return `
+    <div class="card">
+      <h3>🔐 Cryptogram</h3>
+      <p>Click a number to guess the letter. Pre-revealed:</p>
+      <p>${pre}</p>
+      <div class="crypto-grid">${cells}</div>
+      <div class="crypto-progress"><div class="crypto-progress-fill" style="width:${pct}%"></div></div>
+      <div class="crypto-msg">${done}/${uniq.size} letters revealed — ${pct}%</div>
+      <div style="margin-top:14px">
+        <button class="btn" id="cryptoReveal" ${state.cryptoReveals>=3?'disabled':''}>💡 Reveal a letter (${3-state.cryptoReveals} left)</button>
+        ${state.cryptoSolved ? '<span style="color:var(--green);font-weight:700;margin-left:14px">✓ SOLVED</span>' : ''}
+      </div>
+      ${state.cryptoSolved ? `<p style="margin-top:12px;color:var(--gold);font-style:italic">"${CRYPTO_MSG}"</p>` : ''}
+    </div>`;
+}
+
+function renderInterviews() {
+  if (state.phase==='interview_neil') {
+    const left = 3 - state.asked.neil.length;
+    return `<div class="card"><h3>Initial Interview — ${left} question${left!==1?'s':''} left</h3>
+      <p>Ask Neil Down 3 questions to begin.</p></div>
+      ${renderSuspectBlock('neil', true)}`;
+  }
+  if (state.phase==='questions') {
+    const left = 3 - state.questionsThisRound;
+    return `<div class="card"><h3>Question Round — ${left} remaining</h3>
+      <p>Spend your 3 questions on any suspect. Push one above 80% stress to make them blurt out a secret.</p></div>
+      ${renderSuspectBlock('neil', true)}
+      ${renderSuspectBlock('sienna', true)}
+      ${renderSuspectBlock('vincent', true)}`;
+  }
+  return `<div class="card"><h3>Interview Transcripts</h3>
+      <p>No questions to ask right now.</p></div>
+    ${renderSuspectBlock('neil')}
+    ${renderSuspectBlock('sienna')}
+    ${renderSuspectBlock('vincent')}`;
+}
+
+function renderSuspectBlock(key, allowAsk=false) {
+  const s = SUSPECTS[key];
+  const stress = state.stress[key] || 0;
+  const asked = state.asked[key] || [];
+  const unlocked = state.unlocked[key];
+  const questions = s.questions.map((item, i) => {
+    const used = asked.includes(i);
+    return `<li>
+      <button ${(!allowAsk||used)?'disabled':''} data-suspect="${key}" data-q="${i}">${used?'✓':'❓'} ${item.q}</button>
+      ${used ? `<div class="answer-box">${item.a}</div>` : ''}
+    </li>`;
+  }).join('');
+  const blurt = state.blurts[key] ? `<div class="blurt">💥 ${s.name} blurts out: ${s.blurt}</div>` : '';
+  return `<div class="suspect" style="${!unlocked?'opacity:.4':''}">
+    <h3>${s.name} ${!unlocked?'🔒':''}</h3>
+    <div class="role">${s.role}</div>
+    <div class="stress-label"><span>Stress</span><span>${stress}%</span></div>
+    <div class="stress-bar"><div class="stress-fill" style="width:${stress}%"></div></div>
+    ${unlocked ? `<ul class="q-list">${questions}</ul>` : '<p style="font-size:.85rem;color:var(--ink-soft)">Not yet available.</p>'}
+    ${blurt}
+  </div>`;
+}
+
+function renderMain() {
+  if (state.phase==='interview_neil') {
+    return `<div class="card"><h3>🔒 Locked</h3><p>Complete Neil Down's interview first.</p></div>`;
+  }
+  if (state.solvedMain.length === 7) {
+    return `<div class="card"><h3>✓ All Main Puzzles Solved</h3>
+      <p>Head to Case File → Cryptogram to decode the message.</p></div>`;
+  }
+  const idx = state.currentMain;
+  return `
+    <div class="card"><h3>🧩 Main Puzzle ${idx+1} — ${MAIN_TITLES[idx]}</h3>
+      <p>Solve the puzzle to record digit <b style="color:var(--gold)">${MAIN_DIGITS[idx]}</b>.</p>
+      <button class="btn primary" id="openMain">Open Puzzle</button>
+    </div>
+    <div class="card"><h3>Progress</h3>
+      <p>Solved: ${state.solvedMain.map(i=>i+1).join(', ') || '—'}<br>
+      Current: ${idx+1} of 7</p>
+    </div>`;
+}
+
+function renderBonus() {
+  if (state.phase==='interview_neil') {
+    return `<div class="card"><h3>🔒 Locked</h3><p>Complete the initial interview first.</p></div>`;
+  }
+  const mainIdx = state.currentMain;
+  const mainSolved = state.solvedMain.includes(mainIdx);
+
+  return `
+    <div class="card"><h3>🎁 Bonus Puzzles — ${state.solvedBonus.length}/6</h3>
+      <p>Each bonus puzzle gives a clue. Complete the current one to advance.</p></div>
+    <div class="bonus-grid">
+      ${SRC.bonuses.map((b,i) => {
+        const solved = state.solvedBonus.includes(i);
+        const current = i === mainIdx && mainSolved && !solved;
+        const canOpen = solved || current;
+        return `<div class="bonus-card ${solved?'solved':''} ${current?'current':''} ${!canOpen?'locked':''}">
+          <div class="icon">${b.icon}</div>
+          <div class="title">${b.title}</div>
+          <div class="status">${solved?'✓ Solved':(current?'▶ Available':'🔒 Locked')}</div>
+          ${canOpen ? `<button class="btn ${current?'primary':''}" data-bonus="${i}">${solved?'Review':'Open'}</button>` : ''}
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+// ============================================================
+// HANDLERS
+// ============================================================
+function attachHandlers() {
+  // Tabs
+  document.querySelectorAll('.tab').forEach(el => {
+    el.onclick = () => {
+      const t = el.dataset.tab;
+      if ((t==='main'||t==='bonus') && state.phase==='interview_neil') return;
+      state.tab = t; save(); render();
+    };
+  });
+  // Sub-nav
+  document.querySelectorAll('button[data-sub]').forEach(el => {
+    el.onclick = () => { state.subTab = el.dataset.sub; save(); render(); };
+  });
+  document.querySelectorAll('button[data-news]').forEach(el => {
+    el.onclick = () => { state.newsPage = el.dataset.news; save(); render(); };
+  });
+  // Suspect questions
+  document.querySelectorAll('button[data-suspect]').forEach(el => {
+    el.onclick = () => askQuestion(el.dataset.suspect, parseInt(el.dataset.q,10));
+  });
+  // Open main
+  const om = document.getElementById('openMain');
+  if (om) om.onclick = openMainPuzzle;
+  // Open bonus
+  document.querySelectorAll('button[data-bonus]').forEach(el => {
+    el.onclick = () => openBonusPuzzle(parseInt(el.dataset.bonus,10));
+  });
+  // Crypto
+  document.querySelectorAll('.crypto-cell[data-num]').forEach(el => {
+    el.onclick = () => guessCryptoLetter(parseInt(el.dataset.num,10));
+  });
+  const cr = document.getElementById('cryptoReveal');
+  if (cr) cr.onclick = revealCryptoLetter;
+  // Menu
+  const sv = document.getElementById('btnSaveNow');
+  if (sv) sv.onclick = () => { save(); alert('Saved.'); };
+  const wp = document.getElementById('btnWipe');
+  if (wp) wp.onclick = () => { if (confirm('Delete save?')) { wipe(); render(); } };
+  // Accuse
+  const ta = document.getElementById('topAccuse');
+  if (ta) ta.onclick = openAccuse;
+}
+
+// ============================================================
+// INTERVIEWS
+// ============================================================
+function askQuestion(key, idx) {
+  if (!state.unlocked[key]) return;
+  if (state.asked[key].includes(idx)) return;
+
+  state.asked[key].push(idx);
+  state.stress[key] = Math.min(100, (state.stress[key]||0) + 10);
+
+  if (state.stress[key] >= 80 && !state.blurts[key]) {
+    state.blurts[key] = true;
+    setTimeout(() => alert(`💥 ${SUSPECTS[key].name} cracks under pressure:\n\n${SUSPECTS[key].blurt}`), 200);
+  }
+
+  if (state.phase === 'interview_neil') {
+    if (state.asked.neil.length >= 3) {
+      state.unlocked.sienna = true;
+      state.unlocked.vincent = true;
+      state.phase = 'main';
+      state.currentMain = 0;
+      save(); render();
+      alert('Neil\'s interview complete.\n\nSienna Clarke and Vincent Hale are now available.\n\nMain Puzzle 1 is unlocked.');
+      state.tab = 'main'; render();
+      return;
+    }
+  } else if (state.phase === 'questions') {
+    state.questionsThisRound++;
+    if (state.questionsThisRound >= 3) {
+      state.questionsThisRound = 0;
+      state.phase = 'main';
+      state.currentMain++;
+      save(); render();
+      if (state.currentMain >= 7) {
+        state.phase = 'cryptogram';
+        state.subTab = 'crypto';
+        state.tab = 'casefile';
+        render();
+        alert('All main puzzles solved.\n\nThe Cryptogram is now unlocked in your Case File.');
+        return;
+      }
+      alert('Question round complete.\n\nMain Puzzle ' + (state.currentMain+1) + ' is now available.');
+      state.tab = 'main'; render();
+      return;
+    }
+  }
+  save(); render();
+}
+
+// ============================================================
+// PUZZLE MODAL
+// ============================================================
+let activePuzzle = null; // {type:'main'|'bonus', index, solved}
+
+function openPuzzleModal(type, index, src, title, desc) {
+  activePuzzle = { type, index, solved:false };
+  document.getElementById('puzzleModalTitle').textContent = title;
+  document.getElementById('puzzleModalDesc').textContent = desc;
+  const frame = document.getElementById('puzzleFrame');
+  frame.src = src;
+  document.getElementById('puzzleModal').classList.add('show');
+
+  const solvedBtn = document.getElementById('puzzleSolvedBtn');
+  solvedBtn.onclick = () => {
+    if (type === 'main') {
+      recordMainSolved(index);
+    } else {
+      recordBonusSolved(index);
+    }
+    closePuzzleModal();
+  };
+  document.getElementById('puzzleCancelBtn').onclick = closePuzzleModal;
+}
+
+function closePuzzleModal() {
+  document.getElementById('puzzleModal').classList.remove('show');
+  document.getElementById('puzzleFrame').src = 'about:blank';
+  activePuzzle = null;
+}
+
+function openMainPuzzle() {
+  const idx = state.currentMain;
+  openPuzzleModal(
+    'main', idx,
+    SRC.main + '#p=' + (idx+1),
+    'Main Puzzle ' + (idx+1) + ' — ' + MAIN_TITLES[idx],
+    'Solve the puzzle. When you have the correct answer, click "I\'ve solved it".'
+  );
+}
+
+function openBonusPuzzle(idx) {
+  const b = SRC.bonuses[idx];
+  openPuzzleModal(
+    'bonus', idx, b.file,
+    'Bonus Puzzle — ' + b.title,
+    'Solve the puzzle. When done, click "I\'ve solved it" to receive the clue.'
+  );
+}
+
+// ============================================================
+// RECORD SOLVED
+// ============================================================
+function recordMainSolved(idx) {
+  if (state.solvedMain.includes(idx)) return;
+  state.solvedMain.push(idx);
+  state.codeDigits[idx] = MAIN_DIGITS[idx];
+  // Move to bonus of the same number
+  state.phase = 'bonus';
+  state.currentBonus = idx;
+  save();
+
+  if (state.solvedMain.length === 7) {
+    state.phase = 'cryptogram';
+    state.subTab = 'crypto';
+    state.tab = 'casefile';
+    render();
+    alert('All 7 digits recorded!\n\nThe Cryptogram is now unlocked.');
+    return;
+  }
+  alert('Digit ' + MAIN_DIGITS[idx] + ' recorded.\n\nBonus Puzzle ' + (idx+1) + ' is now unlocked.');
+  state.tab = 'bonus';
+  render();
+}
+
+function recordBonusSolved(idx) {
+  if (state.solvedBonus.includes(idx)) return;
+  state.solvedBonus.push(idx);
+  const clue = SRC.bonuses[idx].clue;
+
+  if (state.solvedBonus.length >= 6) {
+    state.phase = 'cryptogram';
+    state.subTab = 'crypto';
+    state.tab = 'casefile';
+    save(); render();
+    alert('All bonus puzzles solved!\n\nThe Cryptogram is now available.');
+    return;
+  }
+  // Unlock new question round
+  state.phase = 'questions';
+  state.questionsThisRound = 0;
+  save();
+  alert('Bonus Puzzle ' + (idx+1) + ' solved.\n\nClue: ' + clue + '\n\nNew question round unlocked — 3 questions to spend.');
+  state.tab = 'interviews';
+  render();
+}
+
+// ============================================================
+// CRYPTOGRAM
+// ============================================================
+function guessCryptoLetter(num) {
+  if (state.cryptoMap[num]) return;
+  const guess = (prompt('Which letter does ' + num + ' represent? (A–Z)') || '').toUpperCase();
+  if (!guess || guess.length !== 1 || !/[A-Z]/.test(guess)) return;
+  const numFor = l => l.charCodeAt(0) - 64;
+  const correct = CRYPTO_MSG.split('').find(ch => ch !== ' ' && numFor(ch) === num);
+  if (correct && correct === guess) {
+    state.cryptoMap[num] = guess;
+    checkCryptoDone();
+  } else {
+    state.prisonYears = Math.max(0, state.prisonYears - 2);
+    state.hintsLeft = Math.max(0, state.hintsLeft - 1);
+    alert('Wrong. -2 prison years, -1 hint.');
+    if (state.prisonYears <= 0) return gameOver();
+  }
+  save(); render();
+}
+
+function revealCryptoLetter() {
+  if (state.cryptoReveals >= 3) return;
+  const numFor = l => l.charCodeAt(0) - 64;
+  const uniq = new Set(CRYPTO_MSG.replace(/ /g,'').split('').map(numFor));
+  const unknown = [...uniq].filter(n => !state.cryptoMap[n]);
+  if (!unknown.length) return checkCryptoDone();
+  const pick = unknown[0];
+  const letter = CRYPTO_MSG.split('').find(ch => ch !== ' ' && numFor(ch) === pick);
+  state.cryptoMap[pick] = letter;
+  state.cryptoReveals++;
+  checkCryptoDone();
+  save(); render();
+}
+
+function checkCryptoDone() {
+  const numFor = l => l.charCodeAt(0) - 64;
+  const uniq = new Set(CRYPTO_MSG.replace(/ /g,'').split('').map(numFor));
+  if ([...uniq].every(n => state.cryptoMap[n]) && !state.cryptoSolved) {
+    state.cryptoSolved = true;
+    state.phase = 'accuse';
+    save(); render();
+    alert('Cryptogram solved!\n\nThe ACCUSE button is now in the top bar.');
+  }
+}
+
+// ============================================================
+// ACCUSE
+// ============================================================
+function openAccuse() {
+  if (!state.cryptoSolved) return;
+  document.getElementById('accuseModal').classList.add('show');
+  document.getElementById('accuseName').value = '';
+  document.getElementById('accuseMsg').className = 'msg';
+}
+function submitAccusation() {
+  const name = (document.getElementById('accuseName').value || '').trim().toLowerCase();
+  const msg = document.getElementById('accuseMsg');
+  if (!name) return;
+  if (name === 'sienna clarke' || name === 'sienna' || name === 'clarke') {
+    state.phase = 'won';
+    save();
+    document.getElementById('accuseModal').classList.remove('show');
+    renderVictory();
+  } else {
+    state.prisonYears = Math.max(0, state.prisonYears - 2);
+    save();
+    msg.className = 'msg error show';
+    msg.textContent = 'Wrong. -2 prison years. Try again.';
+    if (state.prisonYears <= 0) {
+      document.getElementById('accuseModal').classList.remove('show');
+      gameOver();
+    }
+    render();
+  }
+}
+document.addEventListener('click', e => {
+  if (e.target.id === 'accuseSubmit') submitAccusation();
+  const cid = e.target.dataset && e.target.dataset.close;
+  if (cid) document.getElementById(cid).classList.remove('show');
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('accuseModal').classList.contains('show')) submitAccusation();
+});
+
+function renderVictory() {
+  app.innerHTML = `
+    <div class="victory"><div class="content">
+      <h1>CASE CLOSED</h1>
+      <div class="big">✓ SIENNA CLARKE</div>
+      <p>The external security consultant who reviewed three of the affected sites. She knew every blind spot because she wrote the reports.</p>
+      <p>Prison years remaining: <b style="color:var(--gold)">${state.prisonYears}</b></p>
+      <button class="menu-btn" onclick="location.reload()">Play Again</button>
+    </div></div>`;
+}
+function gameOver() {
+  app.innerHTML = `
+    <div class="victory"><div class="content">
+      <h1 style="color:var(--red)">CASE FAILED</h1>
+      <p>You ran out of prison years. The suspect walks free.</p>
+      <button class="menu-btn" onclick="location.reload()">Try Again</button>
+    </div></div>`;
+}
+
+// ============================================================
+// BOOT
+// ============================================================
+render();
+</script>
+
+</body>
+</html>

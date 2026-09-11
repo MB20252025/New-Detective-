@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Whitby Detective - Workstation</title>
+  <style>
+    /* ===== PC STYLES ===== */
+    * { box-sizing: border-box; font-family: Arial, sans-serif; }
+    body { margin: 0; height: 100vh; background: #050505; display: flex; justify-content: center; align-items: center; overflow: hidden; }
+    .computer { width: min(92vw, 900px); display: flex; flex-direction: column; align-items: center; gap: 0px; }
+    .monitor {
+      width: 100%;
+      aspect-ratio: 16/9;
+      background: #181818;
+      border-radius: 18px;
+      padding: 15px;
+      box-shadow: 0 0 60px black, inset 0 0 20px #000;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 2;
+    }
+    .screen {
+      width: 100%;
+      height: 100%;
+      background: #071018;
+      border: 3px solid #333;
+      border-radius: 5px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .header {
+      height: 24px;
+      background: #121820;
+      color: #aaa;
+      display: flex;
+      align-items: center;
+      padding: 0 8px;
+      font-size: 9px;
+      flex-shrink: 0;
+    }
+    .status-light {
+      width: 6px;
+      height: 6px;
+      background: #00ff66;
+      border-radius: 50%;
+      margin-right: 6px;
+    }
+    .desktop {
+      flex: 1;
+      display: flex;
+      background: radial-gradient(circle at top left, #1f3347, #050505 70%);
+      position: relative;
+      overflow: hidden;
+      min-height: 0;
+    }
+    .icons {
+      width: 48px;
+      padding: 6px;
+      flex-shrink: 0;
+      z-index: 5;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .icon {
+      color: rgba(255,255,255,0.7);
+      text-align: center;
+      font-size: 6px;
+      cursor: pointer;
+      padding: 2px 0;
+      transition: color 0.2s;
+    }
+    .icon:hover { color: #fff; }
+    .icon span { display: block; font-size: 18px; margin-bottom: 1px; }
+    .puzzle-area {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+      overflow: auto;
+      min-height: 0;
+      position: relative;
+    }
+
+    /* ===== DESKTOP VIEW ===== */
+    #desktopView {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: absolute;
+      top: 0; left: 0;
+      z-index: 10;
+      background: radial-gradient(circle at top left, #1f3347, #050505 70%);
+      transition: opacity 0.5s;
+      padding: 20px;
+    }
+    #desktopView.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .desktop-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 20px;
+      width: 100%;
+      max-width: 700px;
+      justify-items: center;
+    }
+    .desktop-icon {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 15px 10px;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.2s;
+      color: #b3ffb3;
+      font-size: 12px;
+      width: 100px;
+      text-align: center;
+      min-height: 90px;
+    }
+    .desktop-icon:hover {
+      background: rgba(255,255,255,0.15);
+      transform: scale(1.02);
+    }
+    .desktop-icon .big-icon {
+      font-size: 36px;
+      margin-bottom: 6px;
+    }
+    .desktop-icon .label {
+      font-size: 11px;
+      text-shadow: 0 0 10px rgba(0,0,0,0.8);
+      word-wrap: break-word;
+      line-height: 1.2;
+    }
+    .desktop-icon.hidden-usb {
+      display: none !important;
+    }
+
+    /* ===== HANOI (hidden initially) ===== */
+    .hanoi-wrapper {
+      transform: scale(0.9);
+      transform-origin: center center;
+      width: 100%;
+      height: 100%;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .hanoi-wrapper.active {
+      display: flex;
+    }
+
+    /* ===== HANOI STYLES ===== */
+    .hanoi-wrapper label, .hanoi-wrapper input {
+      position: absolute;
+      top: -10vmin;
+      margin: 0;
+      border: 0;
+      padding: 0;
+      width: 30vmin;
+      height: 52.5vmin;
+      cursor: pointer;
+      opacity: 0;
+      pointer-events: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .hanoi-wrapper input:nth-child(6n+2), .hanoi-wrapper input:checked + input + input + label { left: 0; }
+    .hanoi-wrapper input:nth-child(6n+3), .hanoi-wrapper input:checked + input + label { left: 30vmin; }
+    .hanoi-wrapper input:nth-child(6n+4), .hanoi-wrapper input:checked + label { left: 60vmin; }
+    .hanoi-wrapper label, .hanoi-wrapper input:hover, .hanoi-wrapper input[readonly]:focus + input, .hanoi-wrapper input[readonly]:focus + input + input, .hanoi-wrapper input[readonly]:focus + input + input + input { pointer-events: initial; }
+    .hanoi-wrapper input[readonly], .hanoi-wrapper input:nth-child(6n+2):checked ~ input:nth-child(6n+2), .hanoi-wrapper input:nth-child(6n+3):checked ~ input:nth-child(6n+3), .hanoi-wrapper input:nth-child(6n+4):checked ~ input:nth-child(6n+4) { pointer-events: none; }
+    .hanoi-wrapper #one ~ input, .hanoi-wrapper #one ~ label { z-index: 6; }
+    .hanoi-wrapper #two ~ input, .hanoi-wrapper #two ~ label { z-index: 5; }
+    .hanoi-wrapper #three ~ input, .hanoi-wrapper #three ~ label { z-index: 4; }
+    .hanoi-wrapper #four ~ input, .hanoi-wrapper #four ~ label { z-index: 3; }
+    .hanoi-wrapper #five ~ input, .hanoi-wrapper #five ~ label { z-index: 2; }
+    .hanoi-wrapper #six ~ input, .hanoi-wrapper #six ~ label { z-index: 1; }
+    .hanoi-wrapper input#zero { z-index: 7; }
+    .hanoi-wrapper input#zero:focus { pointer-events: none; }
+    .hanoi-wrapper input[readonly]:focus + input:checked ~ #zero { left: 0; pointer-events: initial; }
+    .hanoi-wrapper input[readonly]:focus + input + input:checked ~ #zero { left: 30vmin; pointer-events: initial; }
+    .hanoi-wrapper input[readonly]:focus + input + input + input:checked ~ #zero { left: 60vmin; pointer-events: initial; }
+    .hanoi-wrapper .discs {
+      position: relative;
+      display: flex;
+      flex-flow: column wrap;
+      justify-content: flex-end;
+      margin: 8vmin auto 0;
+      width: 85vmin;
+      height: 32vmin;
+    }
+    .hanoi-wrapper .disc {
+      z-index: 1;
+      border-radius: 1vmin;
+      height: 4vmin;
+      pointer-events: none;
+      transition: order 0.3s step-end;
+    }
+    .hanoi-wrapper input:checked + input + input + label + .disc { order: 3; }
+    .hanoi-wrapper input:checked + input + label + .disc { order: 6; }
+    .hanoi-wrapper input:checked + label + .disc { order: 9; }
+    .hanoi-wrapper input:focus + input:checked + input + input + label + .disc { order: 1; transition: order 0s; animation: float 3s ease-in-out infinite alternate; }
+    .hanoi-wrapper input:focus + input + input:checked + input + label + .disc { order: 4; transition: order 0s; animation: float 3s ease-in-out infinite alternate; }
+    .hanoi-wrapper input:focus + input + input + input:checked + label + .disc { order: 7; transition: order 0s; animation: float 3s ease-in-out infinite alternate; }
+    @keyframes float { 50% { transform: translateY(-1vmin); } }
+    .hanoi-wrapper input:focus + input:hover + input + input + label + .disc, .hanoi-wrapper input + input:active + input + input + label + .disc { order: 1; }
+    .hanoi-wrapper input:focus + input + input:hover + input + label + .disc, .hanoi-wrapper input + input + input:active + input + label + .disc { order: 4; }
+    .hanoi-wrapper input:focus + input + input + input:hover + label + .disc, .hanoi-wrapper input + input + input + input:active + label + .disc { order: 7; }
+    .hanoi-wrapper .one { margin: 0 10vmin; width: 10vmin; background: linear-gradient(to right, #5d3a1a, #4a2c13, #3a1f0e); }
+    .hanoi-wrapper .two { margin: 0 8vmin; width: 14vmin; background: linear-gradient(to right, #2c3e50, #1e2b3a, #141e2a); }
+    .hanoi-wrapper .three { margin: 0 6vmin; width: 18vmin; background: linear-gradient(to right, #7d5e3a, #6b4e2f, #5a3e24); }
+    .hanoi-wrapper .four { margin: 0 4vmin; width: 22vmin; background: linear-gradient(to right, #3a3a3a, #2a2a2a, #1a1a1a); }
+    .hanoi-wrapper .five { margin: 0 2vmin; width: 26vmin; background: linear-gradient(to right, #2e5e5e, #1f4a4a, #123b3b); }
+    .hanoi-wrapper .six { width: 30vmin; background: linear-gradient(to right, #7a2e2e, #5e2323, #471b1b); }
+    .hanoi-wrapper .spacer { width: 30vmin; height: 1px; flex-grow: 0; pointer-events: none; transition: flex 0.3s; }
+    .hanoi-wrapper .separator { width: 0; height: 100%; }
+    .hanoi-wrapper .a { order: 2; }
+    .hanoi-wrapper .ab { order: 3; }
+    .hanoi-wrapper .b { order: 5; }
+    .hanoi-wrapper .bc { order: 6; }
+    .hanoi-wrapper .c { order: 8; }
+    .hanoi-wrapper input[readonly]:focus + input:hover ~ .a, .hanoi-wrapper input[readonly]:focus + input + input:hover ~ .b, .hanoi-wrapper input[readonly]:focus + input + input + input:hover ~ .c { transition: flex 0s; flex-grow: 1; }
+    .hanoi-wrapper input[readonly]:focus + input:checked ~ .a, .hanoi-wrapper input[readonly]:focus + input + input:checked ~ .b, .hanoi-wrapper input[readonly]:focus + input + input + input:checked ~ .c { flex-grow: 1; }
+    .hanoi-wrapper .win {
+      z-index: 7;
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: -10vmin;
+      bottom: -7.5vmin;
+      color: #a5d6a7;
+      font-family: Arial, sans-serif;
+      font-size: 6vmin;
+      line-height: 17.5vmin;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    .hanoi-wrapper input:nth-child(6n+4):checked ~ input:nth-child(6n+4):checked ~ input:nth-child(6n+4):checked ~ input:nth-child(6n+4):checked ~ input:nth-child(6n+4):checked ~ input:nth-child(6n+4):checked ~ .win { opacity: 1; pointer-events: initial; }
+    .hanoi-wrapper .tower {
+      position: absolute;
+      top: 7.5vmin;
+      border-radius: 1vmin;
+      width: 5vmin;
+      height: 30vmin;
+      background: linear-gradient(to right, #3a3a3a, #2a2a2a, #1a1a1a);
+    }
+    .hanoi-wrapper .tower.c { background: linear-gradient(to right, #2e7d32, #1b5e20, #0a3d0a); }
+    .hanoi-wrapper .a { left: 12.5vmin; }
+    .hanoi-wrapper .b { left: 42.5vmin; }
+    .hanoi-wrapper .c { left: 72.5vmin; }
+    .hanoi-wrapper .bottom {
+      position: relative;
+      display: block;
+      margin: 0 auto;
+      border-radius: 1vmin;
+      width: 95vmin;
+      height: 7.5vmin;
+      background: linear-gradient(to right, rgba(255,255,255,0.1), transparent), linear-gradient(#555, #444 13%, #777 14.5%, #777 27.5%, #444 29%, #444 42%, #777 43.5%, #666 56.5%, #444 58%, #444 71%, #666 72.5%, #666 85.5%, #444 87%, #555);
+    }
+
+    /* ===== BUTTON PANEL ===== */
+    .hanoi-button-panel {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+    .hanoi-action-btn {
+      border: none;
+      border-radius: 4px;
+      padding: 6px 16px;
+      font-size: 12px;
+      font-weight: bold;
+      color: #ccc;
+      background: linear-gradient(to right, #2e7d32, #1b5e20);
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+      font-family: Arial, sans-serif;
+    }
+    .hanoi-action-btn:hover:not(:disabled) { background: linear-gradient(to right, #3e9e43, #2e7d32); }
+    .hanoi-action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ===== OVERLAYS ===== */
+    .overlay-panel {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.85);
+      border-radius: 4px;
+      display: none;
+      flex-direction: column;
+      padding: 20px;
+      overflow-y: auto;
+      z-index: 20;
+      color: #b3ffb3;
+      justify-content: flex-start;
+      align-items: stretch;
+    }
+    .overlay-panel.visible { display: flex; }
+
+    .overlay-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #2a7e2a;
+      padding-bottom: 10px;
+      margin-bottom: 15px;
+    }
+    .overlay-header .title {
+      font-size: 1.2rem;
+      color: #88ff88;
+    }
+    .overlay-header .close-btn {
+      background: #1e3a1e;
+      border: none;
+      color: #aaffaa;
+      font-size: 1rem;
+      padding: 4px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .overlay-header .close-btn:hover { background: #2a6b2a; }
+
+    .file-content {
+      background: #0a120a;
+      border: 1px solid #1e6a1e;
+      border-radius: 4px;
+      padding: 15px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      font-size: 0.85rem;
+      flex: 1;
+      overflow-y: auto;
+      color: #b3ffb3;
+      font-family: 'Courier New', monospace;
+      line-height: 1.6;
+      max-height: calc(100% - 80px);
+    }
+
+    /* Suspect message overlay */
+    #suspect-message {
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      font-size: 2.8vmin;
+      line-height: 1.6;
+    }
+    #suspect-message button {
+      background: #1e4a1e;
+      border: none;
+      color: #b3ffb3;
+      font-size: 3vmin;
+      padding: 1.5vmin 4vmin;
+      border-radius: 1vmin;
+      margin-top: 3vmin;
+      cursor: pointer;
+      box-shadow: 0 0 1.5vmin #00cc00;
+      transition: background 0.3s;
+    }
+    #suspect-message button:hover { background: #2a6b2a; }
+
+    /* USB explorer overlay */
+    #explorer .explorer-header {
+      display: flex;
+      gap: 2vmin;
+      align-items: center;
+      border-bottom: 2px solid #2a7e2a;
+      padding-bottom: 1.5vmin;
+      margin-bottom: 2vmin;
+    }
+    #explorer .back-btn {
+      background: #1e3a1e;
+      border: none;
+      color: #aaffaa;
+      font-size: 2.5vmin;
+      padding: 0.5vmin 2vmin;
+      border-radius: 1vmin;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    #explorer .back-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+    #explorer .path { font-size: 2.5vmin; color: #88ff88; flex: 1; }
+    #explorer .file-list {
+      list-style: none;
+      padding: 0;
+      margin: 2vmin 0;
+      border: 1px solid #1e5a1e;
+      min-height: 20vmin;
+      max-height: 28vmin;
+      overflow-y: auto;
+      background: #0a1a0a;
+      border-radius: 1vmin;
+    }
+    #explorer .file-list li {
+      padding: 1.2vmin 2vmin;
+      border-bottom: 1px solid #1e4a1e;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 1.5vmin;
+      font-size: 2.2vmin;
+    }
+    #explorer .file-list li:hover { background: #1a3a1a; }
+    #explorer .folder-icon::before { content: "📁 "; color: #88ccff; }
+    #explorer .file-icon::before { content: "📄 "; color: #ffcc88; }
+    #explorer .encrypted-icon::before { content: "🔒 "; color: #ff8888; }
+    #explorer .content-area {
+      background: #0a120a;
+      border: 1px solid #1e6a1e;
+      border-radius: 1vmin;
+      padding: 2vmin;
+      margin-top: 2vmin;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      font-size: 2.2vmin;
+      min-height: 20vmin;
+      max-height: 38vmin;
+      overflow-y: auto;
+    }
+
+    /* ===== USB BOX (physical) - hidden when locked ===== */
+    .usb-box {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 140px;
+      height: 24px;
+      background: linear-gradient(180deg, #2a2a2a, #151515);
+      border: 1px solid #444;
+      border-radius: 4px;
+      margin: 6px auto 6px auto;
+      box-shadow: inset 0 1px 2px rgba(255,255,255,0.05), 0 0 15px rgba(0,0,0,0.8);
+      position: relative;
+      z-index: 1;
+      flex-shrink: 0;
+      cursor: pointer;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    .usb-box:hover {
+      border-color: #6a6;
+      box-shadow: 0 0 20px rgba(0,255,0,0.15), 0 0 15px rgba(0,0,0,0.8);
+    }
+    .usb-box.hidden-usb {
+      display: none !important;
+    }
+    .usb-icon { font-size: 12px; color: #888; line-height: 1; }
+    .usb-label { color: #666; font-size: 7px; letter-spacing: 1px; text-transform: uppercase; font-weight: 300; }
+    .usb-port {
+      width: 16px;
+      height: 10px;
+      background: #0a0f1a;
+      border: 1.5px solid #666;
+      border-radius: 2px;
+      box-shadow: inset 0 0 6px rgba(0,0,0,0.9);
+      position: relative;
+      flex-shrink: 0;
+    }
+    .usb-port::after {
+      content: '';
+      position: absolute;
+      bottom: 1.5px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 6px;
+      height: 4px;
+      background: #05080f;
+      border: 1px solid #333;
+      border-radius: 1px;
+      box-shadow: inset 0 0 4px rgba(0,0,0,0.8);
+    }
+
+    .stand {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: -2px;
+      position: relative;
+      z-index: 1;
+    }
+    .stand-neck {
+      width: 60px;
+      height: 25px;
+      background: linear-gradient(135deg, #1a1a1a, #2a2a2a, #1a1a1a);
+      border-radius: 4px 4px 0 0;
+      box-shadow: inset 0 -2px 5px rgba(0,0,0,0.5);
+      border-left: 2px solid #2a2a2a;
+      border-right: 2px solid #2a2a2a;
+      border-top: 2px solid #2a2a2a;
+    }
+    .stand-base {
+      width: 160px;
+      height: 14px;
+      background: linear-gradient(180deg, #222, #111);
+      border-radius: 0 0 20px 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.9);
+      border-left: 2px solid #2a2a2a;
+      border-right: 2px solid #2a2a2a;
+      border-bottom: 2px solid #2a2a2a;
+    }
+
+    .hidden-form { display: none !important; }
+    .hidden { display: none !important; }
+
+    @media (max-width: 500px) {
+      .monitor { padding: 8px; }
+      .header { height: 20px; font-size: 7px; }
+      .icons { width: 36px; padding: 4px; }
+      .icon span { font-size: 14px; }
+      .hanoi-wrapper { transform: scale(0.7); }
+      .hanoi-wrapper .discs { width: 75vmin; height: 28vmin; }
+      .desktop-grid { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; }
+      .desktop-icon { width: 80px; padding: 10px 5px; min-height: 70px; }
+      .desktop-icon .big-icon { font-size: 28px; }
+      .desktop-icon .label { font-size: 10px; }
+    }
+  </style>
+</head>
+<body>
+<div class="computer">
+
+  <!-- MONITOR -->
+  <div class="monitor">
+    <div class="screen">
+
+      <div class="header">
+        <div class="status-light"></div>
+        WHITBY POLICE FORENSIC TERMINAL
+      </div>
+
+      <div class="desktop">
+
+        <div class="icons">
+          <div class="icon"><span>📁</span>Evidence</div>
+          <div class="icon"><span>🗂️</span>Case Files</div>
+          <div class="icon"><span>🔍</span>Search</div>
+          <div class="icon"><span>🖐️</span>Fingerprint</div>
+          <div class="icon"><span>📷</span>CCTV</div>
+          <div class="icon"><span>🗺️</span>Map</div>
+        </div>
+
+        <!-- PUZZLE AREA -->
+        <div class="puzzle-area" id="puzzleArea">
+
+          <!-- DESKTOP VIEW -->
+          <div id="desktopView">
+            <div class="desktop-grid" id="desktopGrid">
+              <!-- Detective Notes -->
+              <div class="desktop-icon" data-file="detectiveNotes">
+                <div class="big-icon">📝</div>
+                <div class="label">Detective Notes</div>
+              </div>
+              <!-- Interview Results -->
+              <div class="desktop-icon" data-file="interviewResults">
+                <div class="big-icon">🗣️</div>
+                <div class="label">Interview Results</div>
+              </div>
+              <!-- Puzzle Log -->
+              <div class="desktop-icon" data-file="puzzleLog">
+                <div class="big-icon">🧩</div>
+                <div class="label">Puzzle Log</div>
+              </div>
+              <!-- Suspects -->
+              <div class="desktop-icon" data-file="suspects">
+                <div class="big-icon">👤</div>
+                <div class="label">Suspects</div>
+              </div>
+              <!-- USB Drive (hidden if locked) -->
+              <div class="desktop-icon" id="usbDesktopIcon">
+                <div class="big-icon">💾</div>
+                <div class="label">USB Drive</div>
+                <div class="sub-label" style="font-size:8px; color:#888;">Click to open</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TOWER OF HANOI -->
+          <div class="hanoi-wrapper" id="hanoiContainer">
+            <form id="hanoiForm">
+              <div class="discs">
+                <input id="one" type="text" tabindex="-1" readonly>
+                <input name="one" type="radio" tabindex="-1" checked>
+                <input name="one" type="radio" tabindex="-1">
+                <input name="one" type="radio" tabindex="-1">
+                <label for="one"></label>
+                <div class="disc one"></div>
+
+                <input id="two" type="text" tabindex="-1" readonly>
+                <input name="two" type="radio" tabindex="-1" checked>
+                <input name="two" type="radio" tabindex="-1">
+                <input name="two" type="radio" tabindex="-1">
+                <label for="two"></label>
+                <div class="disc two"></div>
+
+                <input id="three" type="text" tabindex="-1" readonly>
+                <input name="three" type="radio" tabindex="-1" checked>
+                <input name="three" type="radio" tabindex="-1">
+                <input name="three" type="radio" tabindex="-1">
+                <label for="three"></label>
+                <div class="disc three"></div>
+
+                <input id="four" type="text" tabindex="-1" readonly>
+                <input name="four" type="radio" tabindex="-1" checked>
+                <input name="four" type="radio" tabindex="-1">
+                <input name="four" type="radio" tabindex="-1">
+                <label for="four"></label>
+                <div class="disc four"></div>
+
+                <input id="five" type="text" tabindex="-1" readonly>
+                <input name="five" type="radio" tabindex="-1" checked>
+                <input name="five" type="radio" tabindex="-1">
+                <input name="five" type="radio" tabindex="-1">
+                <label for="five"></label>
+                <div class="disc five"></div>
+
+                <input id="six" type="text" tabindex="-1" readonly>
+                <input name="six" type="radio" tabindex="-1" checked>
+                <input name="six" type="radio" tabindex="-1">
+                <input name="six" type="radio" tabindex="-1">
+                <label for="six"></label>
+                <div class="disc six"></div>
+
+                <input id="zero" type="text" tabindex="-1" readonly>
+                <div class="spacer a"></div><div class="separator ab"></div>
+                <div class="spacer b"></div><div class="separator bc"></div>
+                <div class="spacer c"></div>
+                <div class="tower a"></div><div class="tower b"></div><div class="tower c"></div>
+                <div class="win">You win! :)</div>
+              </div>
+              <div class="bottom"></div>
+            </form>
+
+            <div class="hanoi-button-panel" id="buttonPanel">
+              <button class="hanoi-action-btn" id="newGameBtn">⟲ NEW GAME</button>
+              <button class="hanoi-action-btn" id="solutionBtn">⚙ SOLUTION</button>
+            </div>
+          </div>
+
+          <!-- SUSPECT MESSAGE OVERLAY -->
+          <div class="overlay-panel" id="suspect-message">
+            <div style="max-width:80%; margin:0 auto;">
+              “Well done, detective. You actually solved it.<br>Maybe you're not as dull as the rest.<br>I left a little something — a USB drive.<br>Let's see if you can keep up.”
+            </div>
+            <button id="accessUsbBtn">► ACCESS USB</button>
+          </div>
+
+          <!-- USB EXPLORER OVERLAY -->
+          <div class="overlay-panel" id="explorer">
+            <div class="explorer-header">
+              <button class="back-btn" id="explorerBack">← BACK</button>
+              <span class="path" id="currentPath">ROOT</span>
+              <button class="back-btn" id="explorerClose">✖ CLOSE</button>
+            </div>
+            <ul class="file-list" id="fileList"></ul>
+            <div class="content-area" id="fileContent">📁 Select a file to view</div>
+          </div>
+
+          <!-- FILE VIEWER OVERLAY (for Desktop files) -->
+          <div class="overlay-panel" id="fileViewer">
+            <div class="overlay-header">
+              <span class="title" id="fileViewerTitle">File Viewer</span>
+              <button class="close-btn" id="fileViewerClose">✖ CLOSE</button>
+            </div>
+            <div class="file-content" id="fileViewerContent">Loading...</div>
+          </div>
+
+        </div><!-- end puzzle-area -->
+
+      </div><!-- end desktop -->
+    </div><!-- end screen -->
+  </div><!-- end monitor -->
+
+  <!-- USB BOX (physical) - hidden when locked -->
+  <div class="usb-box" id="usbBox">
+    <span class="usb-icon">🔌</span>
+    <span class="usb-label">USB 3.0</span>
+    <div class="usb-port"></div>
+  </div>
+
+  <!-- STAND -->
+  <div class="stand">
+    <div class="stand-neck"></div>
+    <div class="stand-base"></div>
+  </div>
+
+</div>
+
+<script>
+  // ===== READ URL PARAMETER (initial) =====
+  var urlParams = new URLSearchParams(window.location.search);
+  var usbUnlocked = urlParams.get('usbUnlocked') === 'true';
+  console.log('Hanoi puzzle loaded, initial usbUnlocked:', usbUnlocked);
+
+  // ===== SET USB VISIBILITY =====
+  function setUsbVisibility(visible) {
+    var usbDesktopIcon = document.getElementById('usbDesktopIcon');
+    var usbBox = document.getElementById('usbBox');
+    if (usbDesktopIcon) usbDesktopIcon.classList.toggle('hidden-usb', !visible);
+    if (usbBox) usbBox.classList.toggle('hidden-usb', !visible);
+  }
+
+  // ===== USB FILE SYSTEM (for explorer) =====
+  var fileSystem = {
+    "read_me.txt": "Detective,\n\nIf you're reading this, you've proven you can think logically and patiently — the Tower of Hanoi demands nothing less. Inside this drive you'll find a year's worth of observations. Some stores were successfully visited, others were merely... studied. \n\nI enjoy a worthy opponent. Figure out which jobs are already done, and more importantly — which one is next. The clock is ticking.\n\n— C.",
+    "Evidence": {
+      "downtown_crown.txt": "LOCATION: Downtown Crown Jewelers, 412 Main St.\nSECURITY: Glass display cases, alarm system (DSC PC1832), one guard on weekdays.\nWEAKNESS: Guard takes a smoke break at 2:17 AM for ~9 minutes. Rear door lock outdated (Schlage).\nSTAFF: Manager leaves at 6:30 PM, cleaning crew 11:15 PM - 11:40 PM.\nSTATUS: COMPLETED. No complications.",
+      "eastside_gems.txt": "LOCATION: Eastside Gems & Co., 87 Elmwood Ave.\nSECURITY: Vault door (AMSEC SL300) with timer lock, cameras (Vista PTZ).\nWEAKNESS: Camera rotates away from service corridor every 73 seconds — 11s window.\nSTAFF: Friday closing early (17:00), only two employees.\nSTATUS: COMPLETED. Used corridor window.",
+      "royal_oak.txt": "LOCATION: Royal Oak Watches, 2200 Grand Blvd.\nSECURITY: Bars on windows, motion sensors (Honeywell), safe in back.\nWEAKNESS: Motion sensor offline 3:00-3:05 AM during system test (nightly).\nSTAFF: Owner stays until 23:00 on Saturdays.\nSTATUS: COMPLETED. Took Rolex shipment."
+    },
+    "Logs": {
+      "moves.log": "[1] A → C\n[2] A → B\n[3] C → B\n[4] A → C\n[5] B → A\n[6] B → C\n[7] A → C\n-- Pattern repeats everywhere: security routines, human habits, camera sweeps. Find the rhythm, find the gap.",
+      "camera_delays.log": "Downtown Crown: PTZ camera cycle 47s, blind spot 3s at NE corner.\nEastside Gems: corridor view blocked by flagpole 11:20 - 11:35 nightly.\nRoyal Oak: motion sensor offline window confirmed 3:00-3:05 AM.\nObservation: consistency in gaps — like Hanoi, move by move.",
+      "blind_spots.txt": "📍 2417 Wilson Ave (abandoned) — no cameras but street light flickers.\n📍 Meridian Mall — loading bay camera rotates, 14s blind every 2min.\n📍 Riverside Plaza — guard does rounds every 34min, takes 4min.\nPatterns within patterns."
+    },
+    "Private": {
+      "unfinished_targets.txt": "Stores investigated but never attempted:\n\n- Westside Diamonds (new alarm system, uncertain window)\n- Liberty Jewelers (owner lives above, unpredictable presence)\n- Crystal Cove (reinforced door installed mid-survey)\n- Oakwood Pawn (too many pedestrians after 9 PM)\n\nMaybe one of these becomes the next move. Maybe not.",
+      "ledger.enc": "⛔ ENCRYPTED FILE — PASSWORD REQUIRED ⛔\n(This file will be part of a future puzzle.)"
+    }
+  };
+  var hiddenLedgerContent = "🔓 DECRYPTED LEDGER 🔓\n\nYou found the keystone. Very well.\n\nThe real planning notes:\n\n- The first three jobs (Downtown Crown, Eastside Gems, Royal Oak) were tests.\n- The next target is NOT among the unfinished targets. It's a new location: \n  \"GRAND AVENUE VAULT\" — they installed a new camera system last month, but the rotation pattern is exactly 73 seconds (like Eastside). The blind spot appears at 2:17 AM for 11 seconds.\n\n- I've left a more detailed blueprint inside the \"Private\" folder under the name \"vault_blueprint.txt\". But that file is also encrypted with the same password. (Just kidding — it's plain text now that you're in.)\n\n- Remember: patterns repeat. The tower taught you that.\n\n— C.";
+
+  // ===== LISTEN FOR GAME DATA FROM PARENT =====
+  window.addEventListener('message', function(e) {
+    if (e.data && e.data.type === 'GAME_DATA') {
+      window._gameData = e.data.data;
+      console.log('📥 Received game data via postMessage');
+
+      // Update USB visibility based on received data
+      if (window._gameData && typeof window._gameData.usbUnlocked !== 'undefined') {
+        usbUnlocked = window._gameData.usbUnlocked === true;
+        setUsbVisibility(usbUnlocked);
+        console.log('🔄 USB visibility updated to:', usbUnlocked);
+      }
+    }
+  }, false);
+
+  // ===== GAME LOGIC =====
+  (function() {
+    console.log('Hanoi puzzle initializing...');
+
+    // ---- Helper to get game (now uses postMessage data) ----
+    function getGame() {
+      // 1) Check if we have received data via postMessage
+      if (typeof window._gameData !== 'undefined' && window._gameData) {
+        console.log('✅ Game found via postMessage data');
+        return window._gameData;
+      }
+      // 2) Check local window.game (if exposed)
+      if (typeof window.game !== 'undefined' && window.game) {
+        console.log('✅ Game found via window.game');
+        return window.game;
+      }
+      // 3) Try parent (only works if same origin)
+      try {
+        if (window.parent && window.parent.game) {
+          console.log('✅ Game found via window.parent.game');
+          return window.parent.game;
+        }
+      } catch (e) {
+        console.warn('Cannot access parent:', e);
+      }
+      console.warn('❌ Game not found.');
+      return null;
+    }
+
+    var form = document.getElementById('hanoiForm');
+    var newGameBtn = document.getElementById('newGameBtn');
+    var solutionBtn = document.getElementById('solutionBtn');
+    var suspectOverlay = document.getElementById('suspect-message');
+    var explorerOverlay = document.getElementById('explorer');
+    var fileViewerOverlay = document.getElementById('fileViewer');
+    var fileViewerTitle = document.getElementById('fileViewerTitle');
+    var fileViewerContent = document.getElementById('fileViewerContent');
+    var fileViewerClose = document.getElementById('fileViewerClose');
+    var accessUsbBtn = document.getElementById('accessUsbBtn');
+    var explorerBack = document.getElementById('explorerBack');
+    var explorerClose = document.getElementById('explorerClose');
+    var fileList = document.getElementById('fileList');
+    var fileContent = document.getElementById('fileContent');
+    var currentPathEl = document.getElementById('currentPath');
+    var buttonPanel = document.getElementById('buttonPanel');
+    var desktopView = document.getElementById('desktopView');
+    var hanoiWrapper = document.getElementById('hanoiContainer');
+    var usbBox = document.getElementById('usbBox');
+    var usbDesktopIcon = document.getElementById('usbDesktopIcon');
+
+    var winDisplayed = false;
+    var solving = false;
+    var solveInterval = null;
+    var moveList = [];
+    var currentMoveIndex = 0;
+    var explorerVisible = false;
+    var currentPath = [];
+    var ledgerUnlocked = false;
+
+    // ---- Set USB visibility (already defined globally) ----
+    // (setUsbVisibility is defined above)
+
+    // ---- Desktop icon click handlers (with retry) ----
+    document.querySelectorAll('.desktop-icon[data-file]').forEach(function(icon) {
+      icon.addEventListener('click', function() {
+        var file = this.dataset.file;
+        var game = null;
+        var attempts = 0;
+
+        function tryGetGame() {
+          game = getGame();
+          if (!game && attempts < 10) {
+            attempts++;
+            console.log('⏳ Waiting for game data... attempt ' + attempts);
+            setTimeout(tryGetGame, 300);
+            return;
+          }
+          if (!game) {
+            showFileViewer('Error', 'Game data not available. Please ensure you are playing the game.');
+            return;
+          }
+          // --- Now process the file ---
+          var title = '';
+          var content = '';
+
+          console.log('Opening file:', file, 'Game object:', game);
+
+          switch (file) {
+            case 'detectiveNotes':
+              title = '📝 Detective Notes';
+              var notes = game.detectiveNotes || [];
+              if (notes.length === 0) {
+                content = 'No notes yet.';
+              } else {
+                var formatted = '🔍 DETECTIVE NOTES (CASE LOG)\n';
+                notes.forEach(function(line) {
+                  if (line.trim() === '') {
+                    formatted += '\n';
+                  } else {
+                    if (!line.startsWith('📌') && !line.startsWith('🔍') && !line.startsWith('📋')) {
+                      formatted += '📌 ' + line + '\n';
+                    } else {
+                      formatted += line + '\n';
+                    }
+                  }
+                });
+                content = formatted;
+              }
+              break;
+
+            case 'interviewResults':
+              title = '🗣️ Interview Results';
+              var lines = ['×', 'Select a suspect to view their interview transcript:'];
+              if (game.suspects && game.suspects.length) {
+                game.suspects.forEach(function(s) {
+                  var asked = game.askedQuestions[s.id] || [];
+                  var stress = game.suspectStress[s.id] || 0;
+                  lines.push('');
+                  lines.push(s.emoji + ' ' + s.name);
+                  lines.push('Stress: ' + stress + '%');
+                  lines.push(asked.length + ' questions answered');
+                });
+              } else {
+                lines.push('No suspects available.');
+              }
+              content = lines.join('\n');
+              break;
+
+            case 'puzzleLog':
+              title = '🧩 Puzzle Log';
+              var logLines = ['Main Puzzles:'];
+              if (game.mainPuzzles) {
+                game.mainPuzzles.forEach(function(p, i) {
+                  var solved = game.mainSolved && game.mainSolved[i] ? '✅ SOLVED' : '⬜ Not yet';
+                  logLines.push((i+1) + '. ' + solved);
+                });
+              }
+              logLines.push('');
+              logLines.push('Bonus Puzzles:');
+              if (game.bonusPuzzles) {
+                game.bonusPuzzles.forEach(function(p, i) {
+                  var solved = game.bonusSolved && game.bonusSolved[i] ? '✅ SOLVED' : '⬜ Not yet';
+                  logLines.push((i+1) + '. ' + solved);
+                });
+              }
+              content = logLines.join('\n');
+              break;
+
+            case 'suspects':
+              title = '👤 Suspects';
+              var suspectLines = ['👥 SUSPECT PROFILES'];
+              if (game.suspects) {
+                game.suspects.forEach(function(s, idx) {
+                  suspectLines.push('');
+                  suspectLines.push(s.emoji + ' ' + s.name + ' (S' + (idx+1) + '):');
+                  suspectLines.push('');
+                  if (s.unlocked) {
+                    if (s.id === 's1') {
+                      suspectLines.push('Status:');
+                      suspectLines.push('Former maintenance worker.');
+                      suspectLines.push('Still visits familiar sites out of habit.');
+                      suspectLines.push('Seen near several locations linked to the thefts.');
+                      suspectLines.push('Has prior access and layout knowledge.');
+                      suspectLines.push('');
+                      suspectLines.push('Suspicious:');
+                      suspectLines.push('Had access to restricted areas');
+                      suspectLines.push('Knows security blind spots');
+                      suspectLines.push('Seen near multiple locations after leaving');
+                      suspectLines.push('Brought in for questioning due to repeated sightings near multiple crime scenes linked to prior site access.');
+                    } else if (s.id === 's2') {
+                      suspectLines.push('Oversees all linked locations.');
+                      suspectLines.push('External security consultant.');
+                      suspectLines.push('Worked on security checks at three affected locations');
+                      suspectLines.push('Present during key reviews.');
+                      suspectLines.push('');
+                      suspectLines.push('Suspicious:');
+                      suspectLines.push('Report inconsistencies found');
+                      suspectLines.push('Knows system weaknesses');
+                      suspectLines.push('Present before and after incidents');
+                      suspectLines.push('Reviewed most affected sites');
+                      suspectLines.push('Brought in for questioning due to direct involvement in security reviews at three of the four locations targeted by the thefts.');
+                    } else if (s.id === 's3') {
+                      suspectLines.push('Area manager for multiple affected sites.');
+                      suspectLines.push('Under pressure at work.');
+                      suspectLines.push('Facing financial and performance concerns.');
+                      suspectLines.push('Oversees all linked locations.');
+                      suspectLines.push('');
+                      suspectLines.push('Suspicious:');
+                      suspectLines.push('Manages all affected sites');
+                      suspectLines.push('Financial and job pressure');
+                      suspectLines.push('Access to sensitive information');
+                      suspectLines.push('Brought in for questioning due to managerial responsibility across all affected sites where repeated security breaches have occurred.');
+                    }
+                  } else {
+                    suspectLines.push('🔒 This suspect is not yet available.');
+                  }
+                });
+              }
+              suspectLines.push('');
+              suspectLines.push('🔍 Further investigation may reveal more suspects...');
+              content = suspectLines.join('\n');
+              break;
+
+            default:
+              title = 'Unknown';
+              content = 'No content.';
+          }
+          showFileViewer(title, content);
+        }
+
+        tryGetGame();
+      });
+    });
+
+    // ---- Helper escapeHtml ----
+    function escapeHtml(text) {
+      if (!text) return '';
+      var div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // ---- Show file viewer ----
+    function showFileViewer(title, content) {
+      fileViewerTitle.textContent = title;
+      if (typeof content !== 'string') content = 'No content';
+      fileViewerContent.innerHTML = '<pre style="margin:0; white-space:pre-wrap; font-family:inherit; line-height:1.6;">' + escapeHtml(content) + '</pre>';
+      fileViewerOverlay.classList.add('visible');
+    }
+
+    function closeFileViewer() {
+      fileViewerOverlay.classList.remove('visible');
+    }
+    fileViewerClose.addEventListener('click', closeFileViewer);
+
+    // ---- Initial USB visibility ----
+    setUsbVisibility(usbUnlocked);
+
+    // ---- SHOW HANOI (triggered by USB click) ----
+    function showHanoi() {
+      if (!usbUnlocked) return;
+      desktopView.classList.add('hidden');
+      hanoiWrapper.classList.add('active');
+      suspectOverlay.classList.remove('visible');
+      explorerOverlay.classList.remove('visible');
+      explorerVisible = false;
+
+      if (winDisplayed) {
+        form.classList.add('hidden-form');
+        buttonPanel.style.display = 'none';
+        suspectOverlay.classList.add('visible');
+      } else {
+        form.classList.remove('hidden-form');
+        buttonPanel.style.display = 'flex';
+      }
+    }
+
+    // Click handlers for USB triggers
+    if (usbBox) {
+      usbBox.addEventListener('click', function(e) {
+        if (!usbUnlocked) return;
+        showHanoi();
+      });
+    }
+    if (usbDesktopIcon) {
+      usbDesktopIcon.addEventListener('click', function(e) {
+        if (!usbUnlocked) return;
+        showHanoi();
+      });
+    }
+
+    // ---- HANOI ----
+    function allDiscsOnC() {
+      var discNames = ['one','two','three','four','five','six'];
+      for (var i = 0; i < discNames.length; i++) {
+        var radios = document.getElementsByName(discNames[i]);
+        if (!radios || radios.length < 3) return false;
+        if (!radios[2].checked) return false;
+      }
+      return true;
+    }
+
+    // ***** FIXED: send postMessage on solve, only once *****
+    function checkWin() {
+      if (allDiscsOnC() && !winDisplayed && !explorerVisible) {
+        winDisplayed = true;
+        form.classList.add('hidden-form');
+        buttonPanel.style.display = 'none';
+        suspectOverlay.classList.add('visible');
+        // Notify parent via postMessage (only once)
+        if (window.parent) {
+          window.parent.postMessage({ type: 'PUZZLE_SOLVED' }, '*');
+          console.log('📤 Sent PUZZLE_SOLVED message to parent');
+        }
+      }
+    }
+
+    form.addEventListener('change', function() {
+      checkWin();
+    });
+
+    newGameBtn.addEventListener('click', function() {
+      if (solveInterval) clearInterval(solveInterval);
+      solveInterval = null;
+      solving = false;
+      winDisplayed = false;
+      form.reset();
+      form.classList.remove('hidden-form');
+      buttonPanel.style.display = 'flex';
+      suspectOverlay.classList.remove('visible');
+      explorerOverlay.classList.remove('visible');
+      explorerVisible = false;
+      desktopView.classList.add('hidden');
+      hanoiWrapper.classList.add('active');
+    });
+
+    // ---- SOLUTION ----
+    function generateMoves(n, src, aux, dest, moves) {
+      if (n === 1) { moves.push({ disc: 0, to: dest }); return; }
+      generateMoves(n - 1, src, dest, aux, moves);
+      moves.push({ disc: n - 1, to: dest });
+      generateMoves(n - 1, aux, src, dest, moves);
+    }
+
+    function buildMoveList() {
+      var moves = [];
+      generateMoves(6, 0, 1, 2, moves);
+      return moves;
+    }
+
+    function applyMove(move) {
+      var discNames = ['one','two','three','four','five','six'];
+      var name = discNames[move.disc];
+      var radios = document.getElementsByName(name);
+      if (radios && radios.length > move.to) radios[move.to].checked = true;
+    }
+
+    solutionBtn.addEventListener('click', function() {
+      if (solving) return;
+      if (!usbUnlocked) return;
+      form.reset();
+      moveList = buildMoveList();
+      currentMoveIndex = 0;
+      solving = true;
+      newGameBtn.disabled = true;
+      solutionBtn.disabled = true;
+      solveInterval = setInterval(function() {
+        if (currentMoveIndex >= moveList.length) {
+          clearInterval(solveInterval);
+          solveInterval = null;
+          solving = false;
+          newGameBtn.disabled = false;
+          solutionBtn.disabled = false;
+          checkWin();
+          return;
+        }
+        applyMove(moveList[currentMoveIndex]);
+        currentMoveIndex++;
+      }, 200);
+    });
+
+    // ---- USB EXPLORER ----
+    function getCurrentFolderObj() {
+      var obj = fileSystem;
+      for (var i = 0; i < currentPath.length; i++) {
+        var folder = currentPath[i];
+        if (obj[folder] && typeof obj[folder] === 'object' && !Array.isArray(obj[folder])) {
+          obj = obj[folder];
+        } else {
+          return null;
+        }
+      }
+      return obj;
+    }
+
+    function renderExplorer() {
+      var folderObj = getCurrentFolderObj();
+      if (!folderObj) {
+        currentPath = [];
+        renderExplorer();
+        return;
+      }
+      currentPathEl.textContent = currentPath.length ? currentPath.join(' / ') : 'ROOT';
+      explorerBack.disabled = currentPath.length === 0;
+
+      var items = Object.keys(folderObj).filter(function(key) { return key !== '__proto__'; });
+      var folders = [], files = [];
+      items.forEach(function(key) {
+        if (typeof folderObj[key] === 'object' && !Array.isArray(folderObj[key])) folders.push(key);
+        else files.push(key);
+      });
+      folders.sort(); files.sort();
+      var allItems = folders.map(function(f) { return { name: f, type: 'folder' }; }).concat(files.map(function(f) { return { name: f, type: 'file' }; }));
+
+      fileList.innerHTML = '';
+      allItems.forEach(function(item) {
+        var li = document.createElement('li');
+        li.setAttribute('data-name', item.name);
+        li.setAttribute('data-type', item.type);
+        var icon = item.type === 'folder' ? '📁' : (item.name === 'ledger.enc' ? '🔒' : '📄');
+        li.innerHTML = '<span>' + icon + ' ' + item.name + '</span>';
+        fileList.appendChild(li);
+      });
+      fileContent.innerHTML = '📁 Select a file to view';
+      ledgerUnlocked = false;
+    }
+
+    function showFileContent(filename) {
+      var folderObj = getCurrentFolderObj();
+      if (!folderObj) return;
+      var content = folderObj[filename];
+      if (filename === 'ledger.enc') {
+        if (ledgerUnlocked) {
+          fileContent.innerHTML = '<pre style="white-space: pre-wrap; color: #b3ffb3;">' + hiddenLedgerContent + '</pre>';
+        } else {
+          fileContent.innerHTML = '<pre style="color: #ff8888;">⛔ ENCRYPTED FILE — Click to unlock</pre>';
+          setTimeout(function() {
+            var pwd = prompt("Enter password for ledger.enc:");
+            if (pwd && pwd.trim().toLowerCase() === 'keystone') {
+              ledgerUnlocked = true;
+              fileContent.innerHTML = '<pre style="white-space: pre-wrap; color: #b3ffb3;">' + hiddenLedgerContent + '</pre>';
+            } else {
+              if (pwd !== null) alert("Access denied.");
+              fileContent.innerHTML = '<pre style="color: #ff8888;">⛔ ACCESS DENIED — Try again.</pre>';
+            }
+          }, 50);
+        }
+      } else if (typeof content === 'string') {
+        fileContent.innerHTML = '<pre style="white-space: pre-wrap; color: #b3ffb3;">' + content + '</pre>';
+      } else {
+        fileContent.innerHTML = '⚠️ Cannot display this item.';
+      }
+    }
+
+    fileList.addEventListener('click', function(e) {
+      var li = e.target.closest('li');
+      if (!li) return;
+      var name = li.getAttribute('data-name');
+      var type = li.getAttribute('data-type');
+      if (type === 'folder') {
+        currentPath.push(name);
+        renderExplorer();
+      } else {
+        showFileContent(name);
+      }
+    });
+
+    explorerBack.addEventListener('click', function() {
+      if (currentPath.length > 0) {
+        currentPath.pop();
+        renderExplorer();
+      }
+    });
+
+    accessUsbBtn.addEventListener('click', function() {
+      suspectOverlay.classList.remove('visible');
+      explorerOverlay.classList.add('visible');
+      explorerVisible = true;
+      currentPath = [];
+      renderExplorer();
+      fileContent.innerHTML = '📁 Select a file to view';
+    });
+
+    explorerClose.addEventListener('click', function() {
+      explorerOverlay.classList.remove('visible');
+      explorerVisible = false;
+      desktopView.classList.remove('hidden');
+      hanoiWrapper.classList.remove('active');
+      suspectOverlay.classList.remove('visible');
+    });
+
+    // ---- INIT ----
+    desktopView.classList.remove('hidden');
+    hanoiWrapper.classList.remove('active');
+    form.classList.remove('hidden-form');
+    buttonPanel.style.display = 'flex';
+    suspectOverlay.classList.remove('visible');
+    explorerOverlay.classList.remove('visible');
+    explorerVisible = false;
+
+    // Log if game data is available
+    var game = getGame();
+    if (game) {
+      console.log('✅ Game available on load:', game);
+    } else {
+      console.warn('❌ Game not available on load. Make sure parent sends data via postMessage.');
+    }
+  })();
+</script>
+</body>
+</html>

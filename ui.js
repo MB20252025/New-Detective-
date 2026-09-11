@@ -924,6 +924,7 @@ function renderMainMenuTab() {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.querySelector('.tab[data-tab="mypc"]').classList.add('active');
     if (game) game.currentTab = 'mypc';
+    if (typeof window.refreshContinueButton === 'function') window.refreshContinueButton();
   });
 
   document.getElementById('cancelReturnMenuBtn').addEventListener('click', function() {

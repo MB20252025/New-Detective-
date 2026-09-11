@@ -9,7 +9,13 @@
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Cormorant+Garamond:wght@400;600&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
   <!-- Our CSS -->
   <link rel="stylesheet" href="style.css">
-</head>
+<style>
+  @keyframes pulse-dot {
+    0% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.2); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+</style></head>
 <body>
 
   <!-- ========== CINEMATIC OPENING (replaces old start menu) ========== -->
@@ -21,7 +27,7 @@
         <div class="title-line"></div>
       </div>
 
-      <canvas id="heistCanvas" width="800" height="500"></canvas>
+      <canvas id="heistCanvas" width="800" height="500" style="width: 800px; height: 500px;"></canvas>
 
       <div class="footer">
         <div id="sub-title">
@@ -959,11 +965,18 @@
       const howToPlayBtn = document.getElementById('howToPlayBtn');
 
       // Show/hide Continue based on saved game
-      const saved = localStorage.getItem('whitbyConspiracySave');
-      if (!saved && continueBtn) {
-        continueBtn.style.opacity = '0.4';
-        continueBtn.style.pointerEvents = 'none';
-      }
+      window.refreshContinueButton = function() {
+        const saved = localStorage.getItem('whitbyConspiracySave');
+        if (!continueBtn) return;
+        if (saved) {
+          continueBtn.style.opacity = '1';
+          continueBtn.style.pointerEvents = 'auto';
+        } else {
+          continueBtn.style.opacity = '0.4';
+          continueBtn.style.pointerEvents = 'none';
+        }
+      };
+      window.refreshContinueButton();
 
       if (continueBtn) {
         continueBtn.addEventListener('click', function(e) {

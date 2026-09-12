@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Interrogation Dashboard</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        html, body { width:100%; height:100%; overflow:hidden; }
+        body {
+            background: #060a10;
+            font-family: 'Courier New', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: stretch;
+            padding: 8px;
+            color: #c8dae5;
+        }
+
+        .dashboard {
+            width: 100%;
+            max-width: 1100px;
+            height: 100%;
+            max-height: 100%;
+            min-height: 0;
+            background: #0b1218;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8), 0 0 0 1px #1e3a4a inset;
+            display: flex;
+            flex-direction: row;
+        }
+
+        .left-panel {
+            flex: 0 0 60%;
+            background: radial-gradient(ellipse at 50% 40%, #0f1c2a, #02060a);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 16px 15px;
+            position: relative;
+            border-right: 2px solid #1e3a4a;
+            box-shadow: inset 0 0 60px rgba(0,180,255,0.04);
+            min-height: 0;
+            overflow-y: auto;
+        }
+        .left-panel::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image:
+                linear-gradient(rgba(0,255,200,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,255,200,0.03) 1px, transparent 1px);
+            background-size: 30px 30px;
+            pointer-events: none;
+        }
+
+        .suspect-switcher {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 14px;
+            z-index: 2;
+        }
+        .suspect-dot {
+            width: 52px; height: 62px;
+            border-radius: 16px;
+            background: #0f1a22;
+            border: 2px solid #2a4a5a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.15s ease;
+            padding: 4px 0;
+            gap: 2px;
+        }
+        .suspect-dot img {
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #1a2a36;
+            border: 1px solid #3a5a6a;
+        }
+        .suspect-dot span {
+            font-size: 0.5rem;
+            text-transform: uppercase;
+            color: #7a9aaa;
+            letter-spacing: 0.5px;
+        }
+        .suspect-dot.active {
+            border-color: #00e5ff;
+            box-shadow: 0 0 20px rgba(0,229,255,0.3);
+            background: #0f2230;
+        }
+        .suspect-dot.active span { color: #b0e8ff; }
+        .suspect-dot:active { transform: scale(0.94); }
+
+        .portrait-wrapper {
+            position: relative;
+            width: 140px;
+            height: 140px;
+            margin: 6px 0 8px;
+            z-index: 2;
+            flex-shrink: 0;
+        }
+        .portrait-wrapper::after {
+            content: '';
+            position: absolute;
+            top: -10px; left: -10px;
+            width: calc(100% + 20px);
+            height: calc(100% + 20px);
+            border-radius: 50%;
+            border: 3px solid var(--ring-color, #69db7c);
+            animation: pulseRing 1.8s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+            box-shadow: 0 0 30px var(--ring-color, #69db7c);
+            opacity: 0.6;
+        }
+        @keyframes pulseRing {
+            0% { transform: scale(0.97); opacity: 0.4; box-shadow: 0 0 20px var(--ring-color,#69db7c); }
+            50% { transform: scale(1.06); opacity: 1; box-shadow: 0 0 50px var(--ring-color,#69db7c); }
+            100% { transform: scale(0.97); opacity: 0.4; box-shadow: 0 0 20px var(--ring-color,#69db7c); }
+        }
+
+        .portrait-ring {
+            transform: rotate(-90deg);
+            width: 140px;
+            height: 140px;
+            position: relative;
+            z-index: 3;
+        }
+        .portrait-ring .bg { fill: none; stroke: #1a2a3a; stroke-width: 6; }
+        .portrait-ring .progress {
+            fill: none;
+            stroke-width: 6;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.4s ease, stroke 0.4s ease;
+        }
+
+        .avatar-img {
+            position: absolute;
+            top: 10px; left: 10px;
+            width: 120px; height: 120px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 3px solid #0a1a2a;
+            background: #0f1a22;
+            box-shadow: 0 0 30px rgba(0,0,0,0.7);
+            z-index: 4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+        .avatar-img img { width: 100%; height: 100%; object-fit: cover; transition: filter 0.4s; }
+        .avatar-img.stressed img { filter: contrast(1.2) brightness(0.8) saturate(1.3); }
+        .avatar-placeholder { font-size: 3.2rem; color: #4a7a8a; }
+
+        .ecg-monitor {
+            width: 90%;
+            max-width: 300px;
+            background: #050d12;
+            border: 1px solid #1a3a4a;
+            border-radius: 10px;
+            padding: 3px 5px;
+            margin: 4px 0 6px;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+            z-index: 2;
+            position: relative;
+            height: 60px;
+            flex-shrink: 0;
+        }
+        .ecg-monitor canvas { display: block; width: 100%; height: 100%; border-radius: 5px; background: #050d12; }
+        .ecg-monitor .grid-overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            background:
+                linear-gradient(rgba(0,255,80,0.06) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,255,80,0.06) 1px, transparent 1px);
+            background-size: 20px 20px;
+            border-radius: 5px;
+            z-index: 1;
+        }
+
+        .vitals {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px 16px;
+            background: rgba(0,10,20,0.7);
+            backdrop-filter: blur(4px);
+            border: 1px solid #1a3a4a;
+            border-radius: 14px;
+            padding: 8px 18px;
+            width: 90%;
+            max-width: 300px;
+            z-index: 2;
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            flex-shrink: 0;
+        }
+        .vital { display: flex; justify-content: space-between; border-bottom: 1px solid #1a2a3a; padding: 3px 0; }
+        .vital .label { color: #6a8a9a; }
+        .vital .value { font-weight: bold; font-family: 'Courier New', monospace; }
+        .vital .value.low { color: #69db7c; }
+        .vital .value.medium { color: #ffb347; }
+        .vital .value.high { color: #ff6b6b; }
+
+        .right-panel {
+            flex: 1;
+            min-width: 0;
+            min-height: 0;
+            background: #0b1218;
+            display: flex;
+            flex-direction: column;
+            padding: 12px;
+        }
+        .right-header {
+            color: #8aacbf;
+            font-size: 0.65rem;
+            letter-spacing: 2px;
+            border-bottom: 2px solid #1a3a4a;
+            padding-bottom: 6px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+        .right-header .badge {
+            background: #1a2a36;
+            padding: 2px 12px;
+            border-radius: 30px;
+            color: #00e5ff;
+            font-size: 0.6rem;
+        }
+
+        .notes-scroll {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            padding-right: 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            -webkit-overflow-scrolling: touch;
+        }
+        .notes-scroll::-webkit-scrollbar { width: 5px; }
+        .notes-scroll::-webkit-scrollbar-track { background: #0a1218; border-radius: 5px; }
+        .notes-scroll::-webkit-scrollbar-thumb { background: #2a5a6a; border-radius: 5px; }
+
+        .note-entry {
+            background: #0e1a22;
+            border-left: 3px solid #2a4a5a;
+            padding: 6px 10px;
+            border-radius: 4px;
+            transition: 0.1s;
+            cursor: default;
+            flex-shrink: 0;
+        }
+        .note-entry.locked { opacity: 0.35; cursor: not-allowed; border-left-color: #3a3a3a; }
+        .note-entry.answered { border-left-color: #2a7a4a; background: #0d1a1a; }
+        .note-entry.askable { cursor: pointer; }
+        .note-entry.askable:hover { border-left-color: #4ac0ff; background: #12222e; }
+
+        .note-entry .q {
+            color: #b0d4e8;
+            font-size: 0.78rem;
+            font-weight: 600;
+            display: flex;
+            gap: 6px;
+            align-items: baseline;
+            line-height: 1.35;
+        }
+        .note-entry .q .badge-q {
+            color: #4a8aaa;
+            font-size: 0.55rem;
+            background: #1a2a36;
+            padding: 0 5px;
+            border-radius: 10px;
+            flex-shrink: 0;
+        }
+
+        .note-entry .a {
+            color: #9ac0b0;
+            font-size: 0.75rem;
+            margin-top: 4px;
+            padding: 5px 8px;
+            background: #0a1a1a;
+            border-radius: 5px;
+            border-left: 2px solid #3a8a5a;
+            font-style: italic;
+            line-height: 1.35;
+            animation: typeIn 0.2s ease-out;
+        }
+        @keyframes typeIn {
+            0% { opacity: 0; transform: translateY(-4px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        .empty-notes {
+            color: #4a6a7a;
+            font-size: 0.75rem;
+            text-align: center;
+            padding: 30px 10px;
+            border: 1px dashed #1a3a4a;
+            border-radius: 12px;
+        }
+
+        .phase-banner {
+            background: linear-gradient(90deg, #1a2a36, #0f1a22);
+            border: 1px solid #2a4a5a;
+            border-radius: 10px;
+            padding: 7px 12px;
+            font-size: 0.68rem;
+            color: #7ab8d4;
+            letter-spacing: 0.5px;
+            text-align: center;
+            margin-bottom: 8px;
+            flex-shrink: 0;
+        }
+        .phase-banner strong { color: #00e5ff; }
+
+        @media (max-width: 720px) {
+            html, body { overflow-y: auto; height: auto; min-height: 100%; }
+            body { align-items: flex-start; }
+            .dashboard {
+                flex-direction: column;
+                height: auto;
+                max-height: none;
+                min-height: 100%;
+            }
+            .left-panel {
+                flex: none;
+                border-right: none;
+                border-bottom: 2px solid #1e3a4a;
+                padding: 14px;
+            }
+            .right-panel {
+                flex: none;
+                min-height: 480px;
+            }
+            .notes-scroll { max-height: none; }
+            .portrait-wrapper { width: 120px; height: 120px; }
+            .avatar-img { width: 100px; height: 100px; top: 10px; left: 10px; }
+            .portrait-ring { width: 120px; height: 120px; }
+            .portrait-ring .bg, .portrait-ring .progress { stroke-width: 5; }
+            .portrait-wrapper::after { top: -8px; left: -8px; width: calc(100% + 16px); height: calc(100% + 16px); border-width: 2px; }
+            .ecg-monitor { height: 55px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="dashboard" id="dashboard">Loading…</div>
+
+<script>
+(function(){
+    'use strict';
+
+    const SUSPECTS = [
+        { id:'s1', name:'Neil Down', emoji:'👨',
+          image:{ calm:'neilcalm.png', stressed:'neilstressed.png' } },
+        { id:'s2', name:'Sienna Clarke', emoji:'👩‍💻',
+          image:{ calm:'siennacalm.png', stressed:'siennastressed.png' } },
+        { id:'s3', name:'Vincent Hale', emoji:'🧓',
+          image:{ calm:'vincentcalm.png', stressed:'vincentstressed.png' } }
+    ];
+
+    let GS = null;
+    let currentId = 's1';
+    let offsets = { s1: 0, s2: 0, s3: 0 };
+    let ecgCanvas = null, ecgCtx = null, lastTs = 0, ecgRaf = null;
+    let gameData = null;
+
+    function sendToParent(msg){ try { window.parent.postMessage(msg, '*'); } catch(e){} }
+
+    window.addEventListener('message', function(e){
+        const d = e.data;
+        if (!d) return;
+        if (d.type === 'INIT_STATE') {
+            GS = d.data;
+            if (d.questions) gameData = d.questions;
+            GS.askedQuestions        = GS.askedQuestions        || { s1:[], s2:[], s3:[] };
+            GS.suspectStress         = GS.suspectStress         || { s1:0, s2:0, s3:0 };
+            GS.waitingForQuestions   = !!GS.waitingForQuestions;
+            GS.roundQuestionsRemaining = GS.roundQuestionsRemaining || 0;
+            if (!isVisible(currentId)) currentId = 's1';
+            render();
+        }
+    });
+
+    sendToParent({ type: 'READY' });
+
+    // ---------- Phase / visibility / round logic ----------
+    function puzzleGatePassed(){
+        if (!GS) return false;
+        return !!(GS.mainSolved && GS.mainSolved[0] && GS.bonusSolved && GS.bonusSolved[0]);
+    }
+    function isVisible(sid){
+        if (!GS) return sid === 's1';
+        if (sid === 's1') return true;
+        return puzzleGatePassed();
+    }
+    // 'initial'  → phase 1 (only Neil Down, 3 total)
+    // 'active'   → phase 2 round in progress (any suspect, 3 total)
+    // 'inactive' → no questions allowed
+    function currentRound(){
+        if (!GS) return 'inactive';
+        if (!GS.initialInterviewDone) return 'initial';
+        if (GS.waitingForQuestions && GS.roundQuestionsRemaining > 0) return 'active';
+        return 'inactive';
+    }
+    function canAsk(sid){
+        if (!GS) return false;
+        if (!isVisible(sid)) return false;
+        const round = currentRound();
+        if (round === 'initial') {
+            return sid === 's1' && (GS.askedQuestions.s1 || []).length < 3;
+        }
+        if (round === 'active') {
+            return GS.roundQuestionsRemaining > 0;
+        }
+        return false;
+    }
+
+    function askLocal(sid, qIdx){
+        if (!canAsk(sid)) return;
+        const asked = GS.askedQuestions[sid];
+        if (asked.includes(qIdx)) return;
+        asked.push(qIdx);
+        GS.suspectStress[sid] = Math.min(100, (GS.suspectStress[sid] || 0) + 10);
+
+        // Optimistically decrement the round counter so rapid clicks are blocked.
+        // (Parent will send authoritative state back shortly.)
+        if (currentRound() === 'active') {
+            GS.roundQuestionsRemaining = Math.max(0, GS.roundQuestionsRemaining - 1);
+        }
+
+        sendToParent({ type:'ASK_QUESTION', suspectId: sid, questionIdx: qIdx });
+        render();
+    }
+
+    // ---------- Colour / BPM helpers ----------
+    function stressColor(s){ if (s>70) return '#ff6b6b'; if (s>40) return '#ffb347'; return '#69db7c'; }
+    function stressClass(s){ if (s>70) return 'high'; if (s>40) return 'medium'; return 'low'; }
+    function bpmFor(s){ return Math.round(60 + (s/100)*60); }
+
+    // ---------- ECG ----------
+    const MIN_SPEED = 0.06, MAX_SPEED = 0.18, AMP = 0.30;
+    function cycleLen(qCount){
+        if (qCount >= 10) return 35;
+        if (qCount >= 7)  return 50;
+        if (qCount >= 4)  return 75;
+        return 110;
+    }
+    function ecgWave(x, off, cl){
+        const pos = ((x + off) % cl);
+        const s = AMP, k = cl / 180;
+        let y = 0;
+        y += 12*s*Math.exp(-Math.pow((pos-35*k)/(10*k),2));
+        y -= 18*s*Math.exp(-Math.pow((pos-70*k)/(4*k),2));
+        y += 115*s*Math.exp(-Math.pow((pos-77*k)/(3*k),2));
+        y -= 35*s*Math.exp(-Math.pow((pos-84*k)/(5*k),2));
+        y += 30*s*Math.exp(-Math.pow((pos-120*k)/(16*k),2));
+        return y;
+    }
+    function startECG(){
+        if (ecgRaf) return;
+        lastTs = performance.now();
+        function loop(t){ drawECG(t); ecgRaf = requestAnimationFrame(loop); }
+        loop(lastTs);
+    }
+    function drawECG(t){
+        if (!ecgCtx || !GS) return;
+        const sid = currentId;
+        const stress = GS.suspectStress[sid] || 0;
+        const qCount = (GS.askedQuestions[sid]||[]).length;
+        const bpm = bpmFor(stress);
+        const speed = MIN_SPEED + (bpm-60)/60*(MAX_SPEED-MIN_SPEED);
+        const cl = cycleLen(qCount);
+        if (lastTs > 0) offsets[sid] += (t - lastTs) * speed;
+        lastTs = t;
+        const w = ecgCanvas.width, h = ecgCanvas.height;
+        const cy = h * 0.62;
+        const col = stressColor(stress);
+        const off = offsets[sid];
+        ecgCtx.clearRect(0,0,w,h);
+        ecgCtx.beginPath();
+        for (let x=0; x<w; x++){
+            const y = cy - ecgWave(x, off, cl);
+            if (x===0) ecgCtx.moveTo(x,y); else ecgCtx.lineTo(x,y);
+        }
+        ecgCtx.strokeStyle = col;
+        ecgCtx.lineWidth = 2;
+        ecgCtx.shadowColor = col;
+        ecgCtx.shadowBlur = 6;
+        ecgCtx.stroke();
+        ecgCtx.shadowBlur = 0;
+    }
+    function refreshECGCanvas(){
+        const c = document.getElementById('ecgCanvas');
+        if (!c){ ecgCanvas=null; ecgCtx=null; return; }
+        ecgCanvas = c; ecgCtx = c.getContext('2d');
+        const p = c.parentElement;
+        c.width = p.clientWidth || 280;
+        c.height = p.clientHeight || 60;
+        if (!ecgRaf) startECG();
+    }
+
+    function sQuestions(sid){
+        if (!gameData || !gameData[sid]) return [];
+        return gameData[sid].questions || [];
+    }
+    function sAnswers(sid){
+        if (!gameData || !gameData[sid]) return [];
+        return gameData[sid].responses || [];
+    }
+
+    // ---------- Render ----------
+    function render(){
+        if (!GS) return;
+        const dash = document.getElementById('dashboard');
+        if (!dash) return;
+
+        const s = SUSPECTS.find(x => x.id === currentId);
+        if (!s) return;
+        const stress = GS.suspectStress[s.id] || 0;
+        const asked = GS.askedQuestions[s.id] || [];
+        const ringColor = stressColor(stress);
+        const stressC = stressClass(stress);
+        const isStressed = stress > 80;
+
+        // ---- Phase banner ----
+        const round = currentRound();
+        let phaseMsg = '';
+        if (round === 'initial') {
+            const left = Math.max(0, 3 - (GS.askedQuestions.s1 || []).length);
+            phaseMsg = `PHASE 1 · Initial interrogation — <strong>${left} question${left===1?'':'s'} remaining to Neil Down</strong>`;
+        } else if (round === 'active') {
+            const r = GS.roundQuestionsRemaining;
+            phaseMsg = `PHASE 2 · Round in progress — <strong>${r} question${r===1?'':'s'} remaining this round</strong>`;
+        } else if (puzzleGatePassed()) {
+            phaseMsg = `PHASE 2 · Solve the next Main + Bonus puzzle pair to unlock another round`;
+        } else {
+            phaseMsg = `PHASE 2 · Solve <strong>Main Puzzle 1</strong> and <strong>Bonus Puzzle 1</strong> to unlock the next round`;
+        }
+
+        // ---- Suspect dots ----
+        let dotsHtml = '';
+        for (const sp of SUSPECTS){
+            if (!isVisible(sp.id)) continue;
+            const active = sp.id === currentId ? 'active' : '';
+            dotsHtml += `
+                <div class="suspect-dot ${active}" data-suspect="${sp.id}">
+                    <img src="${sp.image.calm}" alt="${sp.name}"
+                         onerror="this.style.display='none';this.parentElement.insertAdjacentHTML('afterbegin','<span style=\\'font-size:1.2rem;\\'>${sp.emoji}</span>')">
+                    <span>${sp.name.split(' ')[0]}</span>
+                </div>`;
+        }
+
+        // ---- Portrait ----
+        const circumference = 2 * Math.PI * 63;
+        const ringOffset = circumference * (1 - Math.min(stress,100)/100);
+        const imgSrc = s.image[isStressed ? 'stressed' : 'calm'];
+        const avatarHtml = `
+            <img src="${imgSrc}" alt="${s.name}"
+                 onerror="this.style.display='none';this.parentElement.insertAdjacentHTML('afterbegin','<span class=\\'avatar-placeholder\\'>${s.emoji}</span>')">`;
+
+        // ---- Vitals ----
+        const hr = bpmFor(stress);
+        const skin = stress>70 ? 'HIGH' : (stress>40 ? 'MEDIUM' : 'LOW');
+        const resp = Math.round(12 + (stress/100)*8);
+        const sIdx = Math.round(stress);
+
+        // ---- Questions ----
+        const allQ = sQuestions(s.id);
+        const allA = sAnswers(s.id);
+        let notesHtml = '';
+        for (let i=0; i<allQ.length; i++){
+            const answered = asked.includes(i);
+            const askable  = !answered && canAsk(s.id);
+            const locked   = !answered && !askable;
+            let cls = 'note-entry';
+            if (answered) cls += ' answered';
+            else if (locked) cls += ' locked';
+            else if (askable) cls += ' askable';
+            let badge = answered ? '<span class="badge-q">✓</span>'
+                       : locked   ? '<span class="badge-q">🔒</span>'
+                                  : '<span class="badge-q">▶</span>';
+            const aHtml = answered ? `<div class="a">💬 ${allA[i]}</div>` : '';
+            notesHtml += `<div class="${cls}" data-qidx="${i}" data-suspect="${s.id}">
+                            <div class="q">${badge} ${allQ[i]}</div>
+                            ${aHtml}
+                          </div>`;
+        }
+        if (!notesHtml) notesHtml = `<div class="empty-notes">No questions available.</div>`;
+
+        dash.innerHTML = `
+            <div class="left-panel">
+                <div class="suspect-switcher">${dotsHtml}</div>
+
+                <div class="portrait-wrapper" style="--ring-color:${ringColor};">
+                    <svg class="portrait-ring" viewBox="0 0 140 140">
+                        <circle class="bg" cx="70" cy="70" r="63"/>
+                        <circle class="progress" cx="70" cy="70" r="63"
+                            stroke="${ringColor}"
+                            stroke-dasharray="${circumference}"
+                            stroke-dashoffset="${ringOffset}"/>
+                    </svg>
+                    <div class="avatar-img ${isStressed?'stressed':''}">${avatarHtml}</div>
+                </div>
+
+                <div class="ecg-monitor">
+                    <div class="grid-overlay"></div>
+                    <canvas id="ecgCanvas"></canvas>
+                </div>
+
+                <div class="vitals">
+                    <div class="vital"><span class="label">❤️ Heart Rate</span><span class="value ${stressC}" id="bpmDisplay">${hr} BPM</span></div>
+                    <div class="vital"><span class="label">⚡ Skin Conduct</span><span class="value ${stressC}">${skin}</span></div>
+                    <div class="vital"><span class="label">🌬 Respiration</span><span class="value ${stressC}">${resp}/min</span></div>
+                    <div class="vital"><span class="label">📊 Stress Index</span><span class="value ${stressC}">${sIdx}%</span></div>
+                </div>
+            </div>
+
+            <div class="right-panel">
+                <div class="phase-banner">${phaseMsg}</div>
+                <div class="right-header">
+                    <span>📋 CASE NOTES — ${s.name.toUpperCase()}</span>
+                    <span class="badge">${asked.length}/${allQ.length}</span>
+                </div>
+                <div class="notes-scroll" id="notesScroll">${notesHtml}</div>
+            </div>`;
+
+        refreshECGCanvas();
+
+        dash.querySelectorAll('.suspect-dot').forEach(d => {
+            d.addEventListener('click', () => {
+                const id = d.dataset.suspect;
+                if (id && id !== currentId && isVisible(id)){
+                    currentId = id;
+                    render();
+                }
+            });
+        });
+
+        dash.querySelectorAll('.note-entry.askable').forEach(el => {
+            el.addEventListener('click', () => {
+                const sid = el.dataset.suspect;
+                const qidx = parseInt(el.dataset.qidx, 10);
+                askLocal(sid, qidx);
+                const sc = document.getElementById('notesScroll');
+                if (sc) setTimeout(() => sc.scrollTop = sc.scrollHeight, 30);
+            });
+        });
+    }
+})();
+</script>
+</body>
+</html>

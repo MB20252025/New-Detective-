@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Main Puzzles</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html, body { width: 100%; height: 100%; overflow: hidden; }
+
+        body {
+            background: #0b1a2b;
+            background-image: radial-gradient(circle at 20% 30%, #1a334a, #051020 90%);
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            color: #ece3d0;
+            display: flex;
+            justify-content: center;
+            align-items: stretch;
+        }
+
+        .scroll-host {
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .puzzle-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .puzzle-card {
+            position: relative;
+            border-radius: 24px;
+            padding: 28px 28px 32px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(182, 139, 92, 0.3);
+            background-size: cover;
+            background-position: center;
+            background-color: #0f2030;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            min-height: 520px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .puzzle-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 75%;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.4) 45%, transparent 100%);
+            border-radius: 24px;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .puzzle-card > * { position: relative; z-index: 1; }
+
+        .puzzle-card:hover { border-color: #b68b5c; }
+
+        .puzzle-card.solved {
+            border-color: #4a8a6a;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), 0 0 0 2px rgba(74, 138, 106, 0.3) inset;
+        }
+
+        .puzzle-number {
+            display: inline-block;
+            align-self: flex-start;
+            font-family: 'Cinzel', serif;
+            font-size: 0.65rem;
+            font-weight: 600;
+            letter-spacing: 2px;
+            color: #eace9f;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(182, 139, 92, 0.4);
+            border-radius: 40px;
+            padding: 3px 16px;
+            margin-bottom: 14px;
+            text-transform: uppercase;
+            backdrop-filter: blur(2px);
+        }
+
+        .puzzle-title {
+            font-family: 'Cinzel', serif;
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 12px;
+            line-height: 1.3;
+            text-shadow: 0 2px 12px rgba(0, 0, 0, 0.9);
+        }
+
+        .puzzle-desc {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #f5efdf;
+            margin-bottom: 20px;
+            padding: 14px 16px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 14px;
+            border-left: 3px solid #b68b5c;
+            backdrop-filter: blur(2px);
+            text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
+        }
+
+        .options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px 18px;
+            margin-top: 4px;
+        }
+
+        .option {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.95rem;
+            color: #f5efdf;
+            padding: 10px 20px 10px 12px;
+            border-radius: 40px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(182, 139, 92, 0.3);
+            backdrop-filter: blur(2px);
+            transition: background 0.15s, border-color 0.15s, transform 0.1s;
+            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .option:hover:not([disabled]) {
+            background: rgba(182, 139, 92, 0.28);
+            border-color: rgba(182, 139, 92, 0.7);
+        }
+
+        .option:active:not([disabled]) { transform: scale(0.97); }
+
+        .option.correct {
+            background: rgba(74, 138, 106, 0.55);
+            border-color: #4a8a6a;
+            box-shadow: 0 0 14px rgba(74, 138, 106, 0.5);
+        }
+
+        .option.wrong {
+            background: rgba(161, 61, 61, 0.55);
+            border-color: #a13d3d;
+        }
+
+        .option[disabled] { cursor: default; }
+
+        .option .letter {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: #1e3d4a;
+            color: #eace9f;
+            font-weight: 700;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+            border: 1px solid rgba(182, 139, 92, 0.4);
+        }
+
+        .hint-area {
+            margin-top: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .hint-btn {
+            align-self: flex-start;
+            background: rgba(15, 42, 63, 0.9);
+            border: 1px solid #b68b5c;
+            border-radius: 40px;
+            padding: 7px 20px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 0.82rem;
+            color: #ece3d0;
+            cursor: pointer;
+            transition: background 0.15s, border-color 0.15s, transform 0.1s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            backdrop-filter: blur(2px);
+        }
+
+        .hint-btn:hover:not([disabled]) {
+            background: #2a5a6a;
+            border-color: #eace9f;
+        }
+
+        .hint-btn:active:not([disabled]) { transform: scale(0.96); }
+        .hint-btn[disabled] { opacity: 0.4; cursor: not-allowed; }
+
+        .hint-item {
+            font-size: 0.85rem;
+            color: #f5efdf;
+            background: rgba(0, 0, 0, 0.65);
+            padding: 10px 16px;
+            border-radius: 14px;
+            border-left: 3px solid #b68b5c;
+            backdrop-filter: blur(2px);
+            line-height: 1.45;
+            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .solved-block {
+            margin-top: 40px;
+            margin-bottom: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 22px;
+        }
+
+        .solved-banner {
+            display: inline-block;
+            background: rgba(74, 138, 106, 0.9);
+            color: #fff;
+            border-radius: 40px;
+            padding: 10px 28px;
+            font-family: 'Cinzel', serif;
+            font-weight: 600;
+            font-size: 0.95rem;
+            letter-spacing: 3px;
+            border: 1px solid #7bef7b;
+            box-shadow: 0 0 25px rgba(74, 138, 106, 0.5);
+        }
+
+        .digit-reveal {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 110px;
+            height: 110px;
+            border-radius: 26px;
+            background: #0b1e2b;
+            border: 3px solid #f5c542;
+            color: #f5c542;
+            font-family: 'Cinzel', serif;
+            font-size: 3.8rem;
+            font-weight: 700;
+            box-shadow: 0 0 45px rgba(245, 197, 66, 0.6);
+            text-shadow: 0 0 25px #f5c542;
+        }
+
+        .feedback {
+            margin-top: 16px;
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            backdrop-filter: blur(2px);
+        }
+        .feedback.correct {
+            background: rgba(74, 138, 106, 0.4);
+            border: 1px solid #4a8a6a;
+            color: #d7f5e4;
+        }
+        .feedback.wrong {
+            background: rgba(161, 61, 61, 0.4);
+            border: 1px solid #a13d3d;
+            color: #ffd7d7;
+        }
+
+        .status-banner {
+            margin-top: auto;
+            padding: 14px 18px;
+            border-radius: 14px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            line-height: 1.5;
+            backdrop-filter: blur(2px);
+        }
+        .status-banner.lock {
+            background: rgba(94, 30, 30, 0.85);
+            border: 1px solid rgba(200, 100, 100, 0.7);
+            color: #ffdede;
+        }
+        .status-banner.info {
+            background: rgba(20, 60, 90, 0.85);
+            border: 1px solid rgba(100, 160, 220, 0.7);
+            color: #d6ecff;
+        }
+        .status-banner.success {
+            background: rgba(30, 90, 55, 0.85);
+            border: 1px solid rgba(100, 220, 130, 0.7);
+            color: #d6ffe0;
+        }
+
+        .footer {
+            margin-top: 20px;
+            padding-top: 14px;
+            border-top: 1px solid rgba(182, 139, 92, 0.15);
+            text-align: center;
+            font-size: 0.75rem;
+            color: #7a8f99;
+            font-family: 'Cormorant Garamond', serif;
+            letter-spacing: 0.3px;
+        }
+        .footer span { color: #b68b5c; }
+
+        @media (max-width: 640px) {
+            .scroll-host { padding: 12px; }
+            .puzzle-card {
+                padding: 20px 18px 24px;
+                min-height: 460px;
+                border-radius: 20px;
+            }
+            .puzzle-title { font-size: 1.15rem; }
+            .puzzle-desc { font-size: 0.88rem; padding: 12px; }
+            .option { font-size: 0.85rem; padding: 8px 16px 8px 10px; gap: 10px; }
+            .option .letter { width: 24px; height: 24px; font-size: 0.75rem; }
+            .options { gap: 10px 14px; }
+            .hint-btn { font-size: 0.78rem; padding: 6px 16px; }
+            .hint-item { font-size: 0.82rem; }
+            .digit-reveal { width: 88px; height: 88px; font-size: 3rem; border-radius: 20px; }
+            .solved-banner { font-size: 0.82rem; padding: 8px 22px; letter-spacing: 2px; }
+            .status-banner { font-size: 0.82rem; padding: 12px 14px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="scroll-host">
+    <div class="container">
+        <div class="puzzle-wrapper" id="puzzleWrapper"></div>
+        <div class="footer">
+            <span>✦</span> &nbsp; each puzzle reveals one digit of the final cryptogram &nbsp; <span>✦</span>
+        </div>
+    </div>
+</div>
+
+<script>
+(function(){
+    'use strict';
+
+    var STATE = null;
+    var localFeedback = '';
+
+    function send(msg){ try { window.parent.postMessage(msg, '*'); } catch(e){} }
+
+    window.addEventListener('message', function(e){
+        var d = e.data;
+        if (!d || d.type !== 'INIT_STATE') return;
+        STATE = d.data;
+
+        if (STATE && STATE.feedback === 'wrong') {
+            localFeedback = 'wrong';
+            render();
+            setTimeout(function(){
+                if (localFeedback === 'wrong') {
+                    localFeedback = '';
+                    render();
+                }
+            }, 2000);
+        } else {
+            localFeedback = (STATE && STATE.feedback) || '';
+            render();
+        }
+    });
+
+    send({ type: 'READY' });
+
+    function imagePath(index){
+        var ext = index === 0 ? 'jpg' : 'png';
+        return 'p' + (index + 1) + '.' + ext;
+    }
+
+    function render(){
+        var wrapper = document.getElementById('puzzleWrapper');
+        if (!wrapper) return;
+
+        while (wrapper.firstChild) wrapper.removeChild(wrapper.firstChild);
+
+        if (!STATE) {
+            var lc = document.createElement('div');
+            lc.className = 'puzzle-card';
+            lc.style.backgroundImage = 'none';
+            lc.style.background = 'linear-gradient(145deg,#0f2a3f,#1a3a4a)';
+            var lt = document.createElement('div');
+            lt.className = 'puzzle-title';
+            lt.textContent = 'Loading…';
+            lc.appendChild(lt);
+            wrapper.appendChild(lc);
+            return;
+        }
+
+        var p = STATE.puzzle;
+        var idx = STATE.currentIndex;
+        var solved = STATE.solved;
+        var interactive = STATE.interactive;
+        var usedHints = STATE.hintsUsed || 0;
+        var maxHints = STATE.maxHints || 3;
+        var hints = STATE.hints || [];
+        var hintsLeft = Math.max(0, maxHints - usedHints);
+
+        var card = document.createElement('div');
+        card.className = 'puzzle-card' + (solved ? ' solved' : '');
+        card.style.backgroundImage = "url('" + imagePath(idx) + "')";
+
+        var numLabel = solved
+            ? 'PUZZLE ' + (idx + 1) + '  ·  DIGIT ' + p.digit
+            : 'PUZZLE ' + (idx + 1) + '  ·  DIGIT ???';
+        var numEl = document.createElement('div');
+        numEl.className = 'puzzle-number';
+        numEl.textContent = numLabel;
+        card.appendChild(numEl);
+
+        if (solved) {
+            var block = document.createElement('div');
+            block.className = 'solved-block';
+
+            var banner = document.createElement('span');
+            banner.className = 'solved-banner';
+            banner.textContent = '✓ SOLVED';
+            block.appendChild(banner);
+
+            var digit = document.createElement('span');
+            digit.className = 'digit-reveal';
+            digit.textContent = p.digit;
+            block.appendChild(digit);
+
+            card.appendChild(block);
+
+            if (localFeedback === 'correct') {
+                var fbC = document.createElement('div');
+                fbC.className = 'feedback correct';
+                fbC.textContent = '✅ Correct! Digit revealed.';
+                card.appendChild(fbC);
+            }
+
+            if (STATE.statusMessage) {
+                var st = document.createElement('div');
+                st.className = 'status-banner ' + (STATE.statusType || 'info');
+                st.textContent = STATE.statusMessage;
+                card.appendChild(st);
+            }
+        } else {
+            var titleEl = document.createElement('div');
+            titleEl.className = 'puzzle-title';
+            titleEl.textContent = p.title;
+            card.appendChild(titleEl);
+
+            var descEl = document.createElement('div');
+            descEl.className = 'puzzle-desc';
+            descEl.textContent = p.desc;
+            card.appendChild(descEl);
+
+            var optionsHost = document.createElement('div');
+            optionsHost.className = 'options';
+
+            (p.options || []).forEach(function(opt, i){
+                var optEl = document.createElement('div');
+                optEl.className = 'option';
+                optEl.setAttribute('data-index', i);
+                if (!interactive) optEl.setAttribute('disabled', '');
+
+                var letterSpan = document.createElement('span');
+                letterSpan.className = 'letter';
+                letterSpan.textContent = opt.letter;
+                optEl.appendChild(letterSpan);
+
+                var textSpan = document.createElement('span');
+                textSpan.className = 'text';
+                textSpan.textContent = opt.text;
+                optEl.appendChild(textSpan);
+
+                optionsHost.appendChild(optEl);
+            });
+            card.appendChild(optionsHost);
+
+            if (interactive) {
+                var hintArea = document.createElement('div');
+                hintArea.className = 'hint-area';
+
+                var hintBtn = document.createElement('button');
+                hintBtn.className = 'hint-btn';
+                if (usedHints < maxHints) {
+                    hintBtn.textContent = '💡 Hint (' + hintsLeft + ' left, -2 Prison Years)';
+                    hintBtn.id = 'hintBtn';
+                } else {
+                    hintBtn.textContent = '💡 No hints left';
+                    hintBtn.disabled = true;
+                }
+                hintArea.appendChild(hintBtn);
+
+                for (var hi = 0; hi < usedHints && hi < hints.length; hi++) {
+                    var h = document.createElement('div');
+                    h.className = 'hint-item';
+                    h.textContent = '💡 ' + hints[hi];
+                    hintArea.appendChild(h);
+                }
+
+                card.appendChild(hintArea);
+            }
+
+            if (localFeedback === 'wrong') {
+                var fbW = document.createElement('div');
+                fbW.className = 'feedback wrong';
+                fbW.textContent = '❌ Wrong answer. Try again.';
+                card.appendChild(fbW);
+            }
+
+            if (STATE.statusMessage) {
+                var st2 = document.createElement('div');
+                st2.className = 'status-banner ' + (STATE.statusType || 'info');
+                st2.textContent = STATE.statusMessage;
+                card.appendChild(st2);
+            }
+        }
+
+        wrapper.appendChild(card);
+
+        if (!solved && interactive) {
+            card.querySelectorAll('.option').forEach(function(el){
+                el.addEventListener('click', function(){
+                    var idxStr = el.getAttribute('data-index');
+                    var optIdx = parseInt(idxStr, 10);
+                    if (isNaN(optIdx)) return;
+                    send({ type: 'ANSWER', index: optIdx });
+                });
+            });
+
+            var hBtn = document.getElementById('hintBtn');
+            if (hBtn) {
+                hBtn.addEventListener('click', function(){
+                    send({ type: 'HINT' });
+                });
+            }
+        }
+    }
+})();
+</script>
+</body>
+</html>

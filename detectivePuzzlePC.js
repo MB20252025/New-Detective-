@@ -1,83 +1,107 @@
 // ============================================================
-//  DETECTIVE PUZZLE – Load standalone Hanoi puzzle as iframe
+//  detectivePuzzlePC.js — Alias for detectivePuzzle.js
+//  (Both loaders point at hanoi-puzzle.html; kept for compat.)
 // ============================================================
-function showDetectivePuzzleModal(onSolve) {
-  var modalDiv = document.createElement('div');
-  modalDiv.style.position = 'fixed';
-  modalDiv.style.top = '0';
-  modalDiv.style.left = '0';
-  modalDiv.style.width = '100%';
-  modalDiv.style.height = '100%';
-  modalDiv.style.background = 'rgba(0,0,0,0.95)';
-  modalDiv.style.zIndex = '10000';
-  modalDiv.style.display = 'flex';
-  modalDiv.style.alignItems = 'center';
-  modalDiv.style.justifyContent = 'center';
-  modalDiv.style.padding = '20px';
+(function () {
+  'use strict';
 
-  var container = document.createElement('div');
-  container.style.backgroundColor = '#050505';
-  container.style.borderRadius = '20px';
-  container.style.width = '95%';
-  container.style.height = '95%';
-  container.style.maxWidth = '950px';
-  container.style.overflow = 'hidden';
-  container.style.position = 'relative';
-  container.style.boxShadow = '0 20px 40px rgba(0,0,0,0.8)';
+  var modalEl = null;
+  var iframeEl = null;
+  var solveCallback = null;
+  var previousOverflow = '';
 
-  var iframe = document.createElement('iframe');
-  iframe.style.width = '100%';
-  iframe.style.height = '100%';
-  iframe.style.border = 'none';
-  iframe.src = 'js/puzzles/hanoi-puzzle.html';
-  container.appendChild(iframe);
+  window.showDetectivePuzzleModal = function (cb) {
+    solveCallback = (typeof cb === 'function') ? cb : null;
 
-  var closeBtn = document.createElement('button');
-  closeBtn.innerHTML = '✖';
-  closeBtn.style.position = 'absolute';
-  closeBtn.style.top = '12px';
-  closeBtn.style.right = '16px';
-  closeBtn.style.zIndex = '10001';
-  closeBtn.style.background = '#a13d3d';
-  closeBtn.style.border = 'none';
-  closeBtn.style.color = 'white';
-  closeBtn.style.fontSize = '28px';
-  closeBtn.style.width = '44px';
-  closeBtn.style.height = '44px';
-  closeBtn.style.borderRadius = '50%';
-  closeBtn.style.cursor = 'pointer';
-  closeBtn.style.fontWeight = 'bold';
-  closeBtn.style.boxShadow = '0 2px 8px rgba(0,0,0,0.3)';
-  closeBtn.style.display = 'flex';
-  closeBtn.style.alignItems = 'center';
-  closeBtn.style.justifyContent = 'center';
+    if (modalEl) return;
 
-  container.appendChild(closeBtn);
-  modalDiv.appendChild(container);
-  document.body.appendChild(modalDiv);
+    previousOverflow = document.body.style.overflow || '';
+    document.body.style.overflow = 'hidden';
 
-  var puzzleSolved = false;
+    modalEl = document.createElement('div');
+    modalEl.id = 'detectivePuzzleModal';
+    modalEl.style.cssText = [
+      'position:fixed',
+      'inset:0',
+      'width:100vw',
+      'height:100vh',
+      'z-index:99999',
+      'background:#0a0e14',
+      'display:flex',
+      'align-items:center',
+      'justify-content:center',
+      'padding:0',
+      'margin:0',
+      'overflow:hidden'
+    ].join(';');
 
-  window.puzzleSolved = function() {
-    puzzleSolved = true;
+    var closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
+    closeBtn.textContent = '✕ CLOSE';
+    closeBtn.style.cssText = [
+      'position:fixed',
+      'top:18px',
+      'right:22px',
+      'z-index:100001',
+      'background:#a13d3d',
+      'color:#fff',
+      'border:none',
+      'padding:10px 20px',
+      'border-radius:30px',
+      'cursor:pointer',
+      'font-family:monospace',
+      'font-weight:bold',
+      'font-size:0.95rem',
+      'letter-spacing:1px',
+      'box-shadow:0 4px 0 #5c2020'
+    ].join(';');
+    closeBtn.addEventListener('click', function () {
+      window.closeDetectivePuzzleModal();
+    });
+    modalEl.appendChild(closeBtn);
+
+    iframeEl = document.createElement('iframe');
+    iframeEl.id = 'detectivePuzzleIframe';
+    iframeEl.src = 'hanoi-puzzle.html';
+    iframeEl.style.cssText = [
+      'width:100%',
+      'height:100%',
+      'border:none',
+      'display:block',
+      'background:#0a0e14'
+    ].join(';');
+    modalEl.appendChild(iframeEl);
+
+    document.body.appendChild(modalEl);
   };
 
-  function closeModal() {
-    if (puzzleSolved && typeof onSolve === 'function') {
-      onSolve();
+  window.closeDetectivePuzzleModal = function () {
+    if (modalEl && modalEl.parentNode) modalEl.parentNode.removeChild(modalEl);
+    modalEl = null;
+    iframeEl = null;
+    solveCallback = null;
+    document.body.style.overflow = previousOverflow;
+    previousOverflow = '';
+  };
+
+  window.addEventListener('message', function (event) {
+    var d = event.data;
+    if (!d || typeof d !== 'object') return;
+
+    if (d.type === 'HANOI_SOLVED') {
+      var cb = solveCallback;
+      solveCallback = null;
+      if (typeof cb === 'function') {
+        try { cb(); } catch (e) { console.error('detectivePuzzle callback error:', e); }
+      }
+      return;
     }
-    modalDiv.remove();
-    delete window.puzzleSolved;
-  }
 
-  closeBtn.onclick = function(e) {
-    e.stopPropagation();
-    closeModal();
-  };
-
-  modalDiv.onclick = function(e) {
-    if (e.target === modalDiv) {
-      closeModal();
+    if (d.type === 'CLOSE_HANOI') {
+      window.closeDetectivePuzzleModal();
+      return;
     }
-  };
-}
+  });
+
+  console.log('%c🗼 detectivePuzzlePC.js loaded', 'color:#d7b477;');
+})();

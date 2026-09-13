@@ -514,7 +514,7 @@ function renderBonusPuzzles() {
 // ============================================================
 //  CASE FILE TAB — four folders
 // ============================================================
-function renderMyPcTab() {
+function renderCaseFile() {
   var content = document.getElementById('content');
   if (!content) return;
 
@@ -661,9 +661,9 @@ function renderMainMenuTab() {
     document.getElementById('gameWrapper').style.display = 'none';
     document.getElementById('startMenu').style.display = 'flex';
     document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
-    var mp = document.querySelector('.tab[data-tab="mypc"]');
-    if (mp) mp.classList.add('active');
-    if (game) game.currentTab = 'mypc';
+    var cf = document.querySelector('.tab[data-tab="casefile"]');
+    if (cf) cf.classList.add('active');
+    if (game) game.currentTab = 'casefile';
     if (typeof window.refreshContinueButton === 'function') window.refreshContinueButton();
   });
   document.getElementById('cancelReturnMenuBtn').addEventListener('click', function() {
@@ -751,8 +751,8 @@ document.addEventListener('DOMContentLoaded', function() {
 // ============================================================
 function renderInitialTab() {
   if (!game) return;
-  game.currentTab = 'mypc';
-  renderMyPcTab();
+  game.currentTab = 'casefile';
+  renderCaseFile();
   game.updateUI();
 }
 
@@ -769,7 +769,7 @@ function askQuestion(suspectId) { if (!game) return; alert('Asking questions to 
 window.renderInterviews = renderInterviews;
 window.renderMainPuzzles = renderMainPuzzles;
 window.renderBonusPuzzles = renderBonusPuzzles;
-window.renderMyPcTab = renderMyPcTab;
+window.renderCaseFile = renderCaseFile;
 window.renderNewspaperTab = renderNewspaperTab;
 window.renderMainMenuTab = renderMainMenuTab;
 window.renderInitialTab = renderInitialTab;

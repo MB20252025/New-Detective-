@@ -148,6 +148,217 @@ function computePuzzleMeta(puzzle) {
 }
 
 // ============================================================
+//  CASE FILE TAB
+// ============================================================
+function renderCaseFile() {
+  var content = document.getElementById('content');
+  if (!content) return;
+
+  var cryptogramReady = (game.solvedMainPuzzles === game.mainPuzzles.length);
+  var cryptogramLabel;
+  if (!cryptogramReady) {
+    cryptogramLabel = '🔒 Solve all 7 main puzzles';
+  } else if (game.cryptogramSolved) {
+    cryptogramLabel = '✅ Decoded';
+  } else {
+    cryptogramLabel = '🔓 Ready to decode';
+  }
+
+  var notesCount = Math.max(0, (game.detectiveNotes || []).length - 1);
+
+  content.innerHTML =
+    '<div style="padding:16px; background:#0f2a3f; border-radius:16px;">' +
+      '<div style="text-align:center; margin-bottom:20px; padding-bottom:14px; border-bottom:2px solid #b68b5c;">' +
+        '<h2 style="font-family:Cinzel,serif; color:#eace9f; letter-spacing:4px; font-size:1.5rem; margin:0 0 4px;">📁 CASE FILE</h2>' +
+        '<div style="color:#8a7a55; letter-spacing:3px; font-size:0.72rem;">EVIDENCE &amp; DOCUMENTS</div>' +
+      '</div>' +
+      '<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(180px, 1fr)); gap:14px;">' +
+        makeFolderCard('detectiveNotes', '📓', 'Detective Notes',
+          notesCount + ' ' + (notesCount === 1 ? 'entry' : 'entries'), false) +
+        makeFolderCard('puzzleLog', '🧩', 'Puzzle Log',
+          game.solvedMainPuzzles + '/' + game.mainPuzzles.length + ' main · ' +
+          game.solvedBonusPuzzles + '/' + game.bonusPuzzles.length + ' bonus', false) +
+        makeFolderCard('suspects', '👥', 'Suspects', '3 in custody', false) +
+        makeFolderCard('cryptogram', '🔐', 'Cryptogram', cryptogramLabel, !cryptogramReady) +
+      '</div>' +
+    '</div>';
+
+  document.querySelectorAll('.case-folder').forEach(function(el) {
+    el.addEventListener('click', function() {
+      var folder = el.dataset.folder;
+      if (folder === 'detectiveNotes') openDetectiveNotes();
+      else if (folder === 'puzzleLog') openPuzzleLog();
+      else if (folder === 'suspects') openSuspects();
+      else if (folder === 'cryptogram') openCryptogram(cryptogramReady);
+    });
+    if (!el.dataset.locked) {
+      el.addEventListener('mouseenter', function() {
+        el.style.transform = 'translateY(-4px)';
+        el.style.boxShadow = '0 8px 20px rgba(0,0,0,0.5), 0 0 0 1px rgba(182,139,92,0.4)';
+      });
+      el.addEventListener('mouseleave', function() {
+        el.style.transform = 'translateY(0)';
+        el.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
+      });
+    }
+  });
+}
+
+function makeFolderCard(id, icon, title, subtitle, locked) {
+  return '<div class="case-folder" data-folder="' + id + '"' +
+    (locked ? ' data-locked="1"' : '') +
+    ' style="' +
+      'background:linear-gradient(145deg, #1a3a4a, #0f2a3f);' +
+      'border:2px solid ' + (locked ? '#3a5a6a' : '#b68b5c') + ';' +
+      'border-radius:16px;' +
+      'padding:20px 14px;' +
+      'text-align:center;' +
+      'cursor:pointer;' +
+      'transition:transform 0.2s ease, box-shadow 0.2s ease;' +
+      (locked ? 'opacity:0.5;' : '') +
+      'box-shadow:0 4px 12px rgba(0,0,0,0.3);' +
+    '">' +
+      '<div style="font-size:2.6rem; margin-bottom:10px; line-height:1;">' + icon + '</div>' +
+      '<div style="font-family:Cinzel,serif; color:#eace9f; font-weight:600; font-size:1rem; letter-spacing:1px; margin-bottom:6px;">' + title + '</div>' +
+      '<div style="color:#8a7a55; font-size:0.78rem; line-height:1.4;">' + subtitle + '</div>' +
+    '</div>';
+}
+
+function makeBackButton() {
+  return '<button class="case-back-btn" style="' +
+    'background:#5a3f2a; color:#f0e6d2; border:none;' +
+    'padding:8px 20px; border-radius:24px; cursor:pointer;' +
+    'font-family:inherit; font-size:0.85rem; letter-spacing:1px;' +
+    'margin-bottom:14px;' +
+  '">← BACK TO CASE FILE</button>';
+}
+
+function wireBackButton() {
+  var btn = document.querySelector('.case-back-btn');
+  if (btn) btn.addEventListener('click', renderCaseFile);
+}
+
+function openDetectiveNotes() {
+  var content = document.getElementById('content');
+  var notes = (game.detectiveNotes || []).slice(1);
+
+  var html =
+    '<div style="padding:16px;">' +
+      makeBackButton() +
+      '<div style="text-align:center; margin-bottom:16px;">' +
+        '<h2 style="font-family:Cinzel,serif; color:#eace9f; letter-spacing:3px; margin:0;">📓 Detective Notes</h2>' +
+      '</div>' +
+      '<div style="background:#1a3a4a; border-radius:12px; padding:20px; border:1px solid #2a4a5a; max-height:60vh; overflow-y:auto;">';
+
+  if (notes.length === 0) {
+    html += '<p style="color:#8a7a55; font-style:italic; text-align:center; padding:20px;">No notes yet. Progress through the case to add entries.</p>';
+  } else {
+    notes.forEach(function(note) {
+      if (!note || String(note).trim() === '') {
+        html += '<div style="height:8px;"></div>';
+      } else {
+        html += '<div style="color:#cdba92; padding:10px 0; border-bottom:1px dashed #2a4a5a; font-size:0.9rem; line-height:1.6;">' + note + '</div>';
+      }
+    });
+  }
+
+  html += '</div></div>';
+  content.innerHTML = html;
+  wireBackButton();
+}
+
+function openPuzzleLog() {
+  var content = document.getElementById('content');
+
+  var html =
+    '<div style="padding:16px;">' +
+      makeBackButton() +
+      '<div style="text-align:center; margin-bottom:16px;">' +
+        '<h2 style="font-family:Cinzel,serif; color:#eace9f; letter-spacing:3px; margin:0;">🧩 Puzzle Log</h2>' +
+      '</div>' +
+      '<div style="background:#1a3a4a; border-radius:12px; padding:20px; border:1px solid #2a4a5a; max-height:60vh; overflow-y:auto;">';
+
+  html += '<h3 style="font-family:Cinzel,serif; color:#b68b5c; letter-spacing:2px; font-size:0.95rem; margin:0 0 12px;">MAIN PUZZLES</h3>';
+  game.mainPuzzles.forEach(function(p, i) {
+    var solved = game.mainSolved[i];
+    html +=
+      '<div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px dashed #2a4a5a;">' +
+        '<span style="color:' + (solved ? '#7bef7b' : '#cdba92') + '; font-size:0.88rem;">' +
+          (solved ? '✅ ' : '⬜ ') + (i + 1) + '. ' + p.title +
+        '</span>' +
+        (solved ? '<span style="color:#f5c542; font-family:monospace; font-weight:bold; font-size:0.85rem;">DIGIT ' + p.digit + '</span>' : '') +
+      '</div>';
+  });
+
+  html += '<h3 style="font-family:Cinzel,serif; color:#b68b5c; letter-spacing:2px; font-size:0.95rem; margin:20px 0 12px;">BONUS PUZZLES</h3>';
+  game.bonusPuzzles.forEach(function(p, i) {
+    var solved = game.bonusSolved[i];
+    html +=
+      '<div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px dashed #2a4a5a;">' +
+        '<span style="color:' + (solved ? '#7bef7b' : '#cdba92') + '; font-size:0.88rem;">' +
+          (solved ? '✅ ' : '⬜ ') + (i + 1) + '. ' + p.title +
+        '</span>' +
+      '</div>';
+  });
+
+  html += '</div></div>';
+  content.innerHTML = html;
+  wireBackButton();
+}
+
+function openSuspects() {
+  var content = document.getElementById('content');
+  var suspects = game.suspects || [];
+
+  var html =
+    '<div style="padding:16px;">' +
+      makeBackButton() +
+      '<div style="text-align:center; margin-bottom:16px;">' +
+        '<h2 style="font-family:Cinzel,serif; color:#eace9f; letter-spacing:3px; margin:0;">👥 Suspects</h2>' +
+      '</div>';
+
+  suspects.forEach(function(s) {
+    var asked = (game.askedQuestions[s.id] || []).length;
+    var stress = game.suspectStress[s.id] || 0;
+    var stressColor = stress > 70 ? '#ff6b6b' : (stress > 40 ? '#ffb347' : '#69db7c');
+
+    html +=
+      '<div style="background:linear-gradient(145deg, #1a3a4a, #0f2a3f); border:2px solid #b68b5c; border-radius:14px; padding:16px; margin-bottom:14px; box-shadow:0 4px 12px rgba(0,0,0,0.3);">' +
+        '<div style="display:flex; align-items:center; gap:12px; margin-bottom:14px;">' +
+          '<div style="font-size:2rem; line-height:1;">' + s.emoji + '</div>' +
+          '<div>' +
+            '<div style="font-family:Cinzel,serif; color:#eace9f; font-weight:600; font-size:1.1rem; letter-spacing:1px;">' + s.name + '</div>' +
+            '<div style="color:#8a7a55; font-size:0.75rem;">' + asked + ' questions answered</div>' +
+          '</div>' +
+        '</div>' +
+        '<div style="display:flex; align-items:center; gap:10px;">' +
+          '<span style="color:#8a7a55; font-size:0.7rem; letter-spacing:1px; min-width:55px;">STRESS</span>' +
+          '<div style="flex:1; background:#0a1a2a; border-radius:10px; height:8px; overflow:hidden;">' +
+            '<div style="height:100%; width:' + stress + '%; background:' + stressColor + '; transition:width 0.3s;"></div>' +
+          '</div>' +
+          '<span style="color:' + stressColor + '; font-size:0.8rem; font-family:monospace; font-weight:bold; min-width:38px; text-align:right;">' + stress + '%</span>' +
+        '</div>' +
+      '</div>';
+  });
+
+  html += '</div>';
+  content.innerHTML = html;
+  wireBackButton();
+}
+
+function openCryptogram(ready) {
+  if (!ready) {
+    game.showPopup('🔒 Solve all 7 main puzzles to unlock the Cryptogram.');
+    return;
+  }
+  if (typeof showCryptogramModal === 'function') {
+    showCryptogramModal();
+  } else {
+    game.showPopup('Cryptogram module not loaded.');
+  }
+}
+
+// ============================================================
 //  INTERVIEWS TAB
 // ============================================================
 var interviewsIframe = null;
@@ -607,22 +818,6 @@ function renderBonusPuzzles() {
 }
 
 // ============================================================
-//  MY PC TAB — idle placeholder
-// ============================================================
-function renderMyPcTab() {
-  var content = document.getElementById('content');
-  if (!content) return;
-  content.innerHTML =
-    '<div style="width:100%; height:100%; min-height:500px; background:#050505; border-radius:8px; display:flex; align-items:center; justify-content:center;">' +
-      '<div style="text-align:center; color:#7a8f99; font-family:monospace; padding:40px;">' +
-        '<div style="font-size:64px; margin-bottom:20px;">🖥️</div>' +
-        '<div style="font-size:1.1rem; letter-spacing:2px; color:#cdba92;">WORKSTATION</div>' +
-        '<div style="font-size:0.85rem; margin-top:12px; max-width:400px;">The workstation is idle for now. Continue your investigation through the other tabs.</div>' +
-      '</div>' +
-    '</div>';
-}
-
-// ============================================================
 //  NEWSPAPER TAB
 // ============================================================
 var newspaperIframe = null;
@@ -656,9 +851,9 @@ function renderMainMenuTab() {
     document.getElementById('gameWrapper').style.display = 'none';
     document.getElementById('startMenu').style.display = 'flex';
     document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
-    var mp = document.querySelector('.tab[data-tab="mypc"]');
-    if (mp) mp.classList.add('active');
-    if (game) game.currentTab = 'mypc';
+    var cf = document.querySelector('.tab[data-tab="casefile"]');
+    if (cf) cf.classList.add('active');
+    if (game) game.currentTab = 'casefile';
     if (typeof window.refreshContinueButton === 'function') window.refreshContinueButton();
   });
 
@@ -765,8 +960,8 @@ document.addEventListener('DOMContentLoaded', function() {
 // ============================================================
 function renderInitialTab() {
   if (!game) return;
-  game.currentTab = 'mypc';
-  renderMyPcTab();
+  game.currentTab = 'casefile';
+  renderCaseFile();
   game.updateUI();
 }
 
@@ -795,10 +990,10 @@ function askQuestion(suspectId) {
 // ============================================================
 //  EXPOSE
 // ============================================================
+window.renderCaseFile = renderCaseFile;
 window.renderInterviews = renderInterviews;
 window.renderMainPuzzles = renderMainPuzzles;
 window.renderBonusPuzzles = renderBonusPuzzles;
-window.renderMyPcTab = renderMyPcTab;
 window.renderNewspaperTab = renderNewspaperTab;
 window.renderMainMenuTab = renderMainMenuTab;
 window.renderInitialTab = renderInitialTab;

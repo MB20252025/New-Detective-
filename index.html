@@ -4,8 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
   <title>⚓ WHITBY LIGHTHOUSE CONSPIRACY</title>
+  <!-- External libraries -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Cormorant+Garamond:wght@400;600&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+  <!-- Our CSS -->
   <link rel="stylesheet" href="style.css">
 <style>
   @keyframes pulse-dot {
@@ -16,7 +18,9 @@
 </style></head>
 <body>
 
+  <!-- ========== CINEMATIC OPENING (replaces old start menu) ========== -->
   <div id="startMenu" class="start-menu">
+    <!-- SCENE 1: STICKMAN -->
     <div id="scene-stickman">
       <div class="header">
         <div id="main-title">Detective Files:</div>
@@ -38,6 +42,7 @@
       </div>
     </div>
 
+    <!-- SCENE 2: NOCTURNE -->
     <div id="scene-nocturne">
       <div class="room off no-select" id="room">
 
@@ -92,6 +97,7 @@
           </div>
         </div>
 
+        <!-- MENU – IDs match existing game functions -->
         <div class="ui-menu">
           <div class="item-wrap"><a class="item" id="continueGameBtn" href="#">Continue</a></div>
           <div class="item-wrap"><a class="item" id="newGameBtn" href="#">New Game</a></div>
@@ -107,10 +113,13 @@
     </div>
   </div>
 
+  <!-- ========== GAME WRAPPER (hidden initially) ========== -->
   <div id="gameWrapper" style="display:none;">
     <div class="game-container">
+      <!-- Popup area for notifications -->
       <div id="popupContainer" class="popup-area"></div>
 
+      <!-- Header -->
       <div class="header">
         <div class="title"><h1>⚓ THE WHITBY LIGHTHOUSE CONSPIRACY</h1></div>
         <div class="code-container" id="codeContainer">
@@ -130,8 +139,9 @@
         </div>
       </div>
 
+      <!-- Tabs -->
       <div class="tab-bar" id="tabBar">
-        <div class="tab active" data-tab="casefile">📁 Case File</div>
+        <div class="tab" data-tab="mypc">🖥️ MY PC</div>
         <div class="tab" data-tab="interviews">🗂️ Interviews</div>
         <div class="tab locked" data-tab="mainpuzzles">🧩 Main Puzzles</div>
         <div class="tab locked" data-tab="bonuspuzzles">🎁 Bonus Puzzles</div>
@@ -139,10 +149,12 @@
         <div class="tab" data-tab="mainmenu">🏠 Main Menu</div>
       </div>
 
+      <!-- Content Panel -->
       <div class="content-panel" id="content"></div>
     </div>
   </div>
 
+  <!-- ========== INFO MODAL (generic) ========== -->
   <div id="infoModal" class="modal" style="display:none;">
     <div class="modal-content">
       <div class="modal-header"><span id="modal-title"></span><span class="close" id="closeModal">&times;</span></div>
@@ -150,6 +162,7 @@
     </div>
   </div>
 
+  <!-- ========== CONFIRM MODAL ========== -->
   <div id="confirmModal" class="modal" style="display:none;">
     <div class="modal-content" style="max-width:400px; text-align:center;">
       <div class="modal-header"><span>⚠️ CONFIRM</span><span class="close" id="closeConfirmModal">&times;</span></div>
@@ -164,6 +177,7 @@
     </div>
   </div>
 
+  <!-- ========== HOW TO PLAY MODAL ========== -->
   <div id="howModal" class="how-modal" style="display:none;">
     <div class="how-modal-content">
       <h2>📜 HOW TO PLAY</h2>
@@ -182,6 +196,7 @@
     </div>
   </div>
 
+  <!-- ========== JAVASCRIPT (game scripts) ========== -->
   <script src="gameManager.js"></script>
   <script src="puzzlesData.js"></script>
   <script src="modals.js"></script>
@@ -199,10 +214,16 @@
   <script src="scalePuzzle.js"></script>
   <script src="vaultPuzzle.js"></script>
   <script src="detectiveNotesModal.js"></script>
+  <script src="suspectsModal.js"></script>
   <script src="ui.js"></script>
   <script src="main.js"></script>
 
+  <!-- ========== CINEMATIC OPENING SCRIPT ========== -->
   <script>
+    // ────────────────────────────────────────────────────────────────
+    //  SCENE 1: STICKMAN + BUILDINGS
+    // ────────────────────────────────────────────────────────────────
+
     const canvas = document.getElementById('heistCanvas');
     const ctx = canvas.getContext('2d');
     const W = 800, H = 500;
@@ -304,7 +325,8 @@
         const w = minW + Math.random() * (maxW - minW);
         const h = minH + Math.random() * (maxH - minH);
         const color = colorPalette[Math.floor(Math.random() * colorPalette.length)];
-        const winColor = `rgb(${180 + Math.random() * 60}, ${140 + Math.random() * 40}, ${60 + Math.random() * 40})`;
+        const winColor =
+          `rgb(${180 + Math.random() * 60}, ${140 + Math.random() * 40}, ${60 + Math.random() * 40})`;
         const litRatio = 0.3 + Math.random() * 0.35;
         const rows = Math.floor(h / 26) + 1;
         const cols = Math.floor(w / 20) + 1;
@@ -335,49 +357,83 @@
 
     function spawnJewel(x, y) {
       const colors = ['#f43f5e', '#3b82f6', '#10b981', '#a855f7', '#eab308', '#f97316'];
-      jewels.push({ x, y, vx: -1.8 - Math.random() * 2.5, vy: -1.5 - Math.random() * 2.5,
-        size: 3 + Math.random() * 5, color: colors[Math.floor(Math.random() * colors.length)],
-        life: 1.0, decay: 0.015 + Math.random() * 0.025, shape: Math.floor(Math.random() * 3) });
+      jewels.push({
+        x, y,
+        vx: -1.8 - Math.random() * 2.5,
+        vy: -1.5 - Math.random() * 2.5,
+        size: 3 + Math.random() * 5,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        life: 1.0,
+        decay: 0.015 + Math.random() * 0.025,
+        shape: Math.floor(Math.random() * 3)
+      });
     }
 
     function updateJewels() {
       for (let i = jewels.length - 1; i >= 0; i--) {
         const j = jewels[i];
-        j.x += j.vx; j.y += j.vy; j.vy += 0.18; j.life -= j.decay;
-        if (j.life <= 0) jewels.splice(i, 1);
+        j.x += j.vx;
+        j.y += j.vy;
+        j.vy += 0.18;
+        j.life -= j.decay;
+        if (j.life <= 0) {
+          jewels.splice(i, 1);
+        }
       }
     }
 
     function drawJewels() {
       jewels.forEach(j => {
-        ctx.fillStyle = j.color; ctx.globalAlpha = j.life * 0.9;
-        ctx.shadowColor = j.color; ctx.shadowBlur = 18;
+        ctx.fillStyle = j.color;
+        ctx.globalAlpha = j.life * 0.9;
+        ctx.shadowColor = j.color;
+        ctx.shadowBlur = 18;
         ctx.beginPath();
         if (j.shape === 0) {
-          ctx.moveTo(j.x, j.y - j.size); ctx.lineTo(j.x + j.size * 0.8, j.y);
-          ctx.lineTo(j.x, j.y + j.size); ctx.lineTo(j.x - j.size * 0.8, j.y);
+          ctx.moveTo(j.x, j.y - j.size);
+          ctx.lineTo(j.x + j.size * 0.8, j.y);
+          ctx.lineTo(j.x, j.y + j.size);
+          ctx.lineTo(j.x - j.size * 0.8, j.y);
         } else if (j.shape === 1) {
           ctx.rect(j.x - j.size / 2, j.y - j.size / 2, j.size, j.size);
         } else {
           ctx.arc(j.x, j.y, j.size / 1.6, 0, Math.PI * 2);
         }
-        ctx.closePath(); ctx.fill();
+        ctx.closePath();
+        ctx.fill();
       });
-      ctx.globalAlpha = 1; ctx.shadowBlur = 0;
+      ctx.globalAlpha = 1;
+      ctx.shadowBlur = 0;
     }
 
     function drawLimb(sx, sy, a1, a2, l1, l2) {
-      const jx = sx + Math.cos(a1) * l1; const jy = sy + Math.sin(a1) * l1;
-      const ex = jx + Math.cos(a1 + a2) * l2; const ey = jy + Math.sin(a1 + a2) * l2;
-      ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(jx, jy); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(jx, jy); ctx.lineTo(ex, ey); ctx.stroke();
+      const jx = sx + Math.cos(a1) * l1;
+      const jy = sy + Math.sin(a1) * l1;
+      const ex = jx + Math.cos(a1 + a2) * l2;
+      const ey = jy + Math.sin(a1 + a2) * l2;
+      ctx.beginPath();
+      ctx.moveTo(sx, sy);
+      ctx.lineTo(jx, jy);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(jx, jy);
+      ctx.lineTo(ex, ey);
+      ctx.stroke();
       return { handX: ex, handY: ey };
     }
 
     function drawStickman(cx, cy, t) {
-      const intensity = 1.0, headR = 20, torso = 62, uArm = 34, lArm = 28, uLeg = 44, lLeg = 38;
+      const intensity = 1.0;
+      const headR = 20;
+      const torso = 62;
+      const uArm = 34;
+      const lArm = 28;
+      const uLeg = 44;
+      const lLeg = 38;
+
       const bounce = Math.abs(Math.sin(t * 2)) * 7;
-      const hipX = cx, hipY = cy + bounce;
+      const hipX = cx;
+      const hipY = cy + bounce;
       const lean = -0.32;
       const shX = hipX + Math.sin(lean) * torso;
       const shY = hipY - Math.cos(lean) * torso;
@@ -393,93 +449,163 @@
       const rSh = -0.4 + Math.sin(t + Math.PI * 0.3) * 0.15;
       const rElbow = 2.0 + Math.sin(t + 0.5) * 0.15;
 
-      ctx.strokeStyle = '#f0f4fc'; ctx.lineWidth = 5.5;
-      ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-      ctx.shadowColor = 'rgba(100,150,255,0.08)'; ctx.shadowBlur = 6;
+      ctx.strokeStyle = '#f0f4fc';
+      ctx.lineWidth = 5.5;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.shadowColor = 'rgba(100,150,255,0.08)';
+      ctx.shadowBlur = 6;
 
       drawLimb(hipX, hipY, lHip, lKnee, uLeg, lLeg);
 
-      const bagX = shX - 32, bagY = shY + 8, bagR = 30;
-      ctx.shadowBlur = 20; ctx.shadowColor = 'rgba(200,150,50,0.15)';
-      ctx.fillStyle = '#b45309'; ctx.beginPath(); ctx.arc(bagX, bagY, bagR, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#92400e'; ctx.beginPath(); ctx.arc(bagX - 4, bagY - 6, bagR * 0.7, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#78350f'; ctx.beginPath();
-      ctx.moveTo(shX - 6, shY + 2); ctx.lineTo(bagX + 8, bagY - 14); ctx.lineTo(bagX - 2, bagY - 22);
-      ctx.closePath(); ctx.fill();
+      const bagX = shX - 32;
+      const bagY = shY + 8;
+      const bagR = 30;
+      ctx.shadowBlur = 20;
+      ctx.shadowColor = 'rgba(200,150,50,0.15)';
+      ctx.fillStyle = '#b45309';
+      ctx.beginPath();
+      ctx.arc(bagX, bagY, bagR, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#92400e';
+      ctx.beginPath();
+      ctx.arc(bagX - 4, bagY - 6, bagR * 0.7, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#78350f';
+      ctx.beginPath();
+      ctx.moveTo(shX - 6, shY + 2);
+      ctx.lineTo(bagX + 8, bagY - 14);
+      ctx.lineTo(bagX - 2, bagY - 22);
+      ctx.closePath();
+      ctx.fill();
       ctx.shadowBlur = 0;
-      ctx.fillStyle = '#fbbf24'; ctx.font = 'bold 22px Arial';
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#fbbf24';
+      ctx.font = 'bold 22px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
       ctx.fillText('$', bagX + 2, bagY + 2);
 
-      if (Math.random() < 0.12) spawnJewel(bagX - 8 + Math.random() * 16, bagY + 4 + Math.random() * 10);
+      if (Math.random() < 0.12) {
+        spawnJewel(bagX - 8 + Math.random() * 16, bagY + 4 + Math.random() * 10);
+      }
 
-      ctx.shadowBlur = 6; ctx.shadowColor = 'rgba(100,150,255,0.06)';
-      ctx.strokeStyle = '#f0f4fc'; ctx.lineWidth = 5.5;
-      ctx.beginPath(); ctx.moveTo(shX, shY); ctx.lineTo(hipX, hipY); ctx.stroke();
-      ctx.beginPath(); ctx.arc(headX, headY, headR, 0, Math.PI * 2); ctx.stroke();
+      ctx.shadowBlur = 6;
+      ctx.shadowColor = 'rgba(100,150,255,0.06)';
+      ctx.strokeStyle = '#f0f4fc';
+      ctx.lineWidth = 5.5;
+      ctx.beginPath();
+      ctx.moveTo(shX, shY);
+      ctx.lineTo(hipX, hipY);
+      ctx.stroke();
 
-      ctx.fillStyle = '#0b111e'; ctx.shadowBlur = 0;
-      ctx.beginPath(); ctx.arc(headX + 8, headY - 3, 5, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath();
+      ctx.arc(headX, headY, headR, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.fillStyle = '#0b111e';
+      ctx.shadowBlur = 0;
+      ctx.beginPath();
+      ctx.arc(headX + 8, headY - 3, 5, 0, Math.PI * 2);
+      ctx.fill();
       ctx.fillStyle = 'rgba(255,255,255,0.15)';
-      ctx.beginPath(); ctx.arc(headX + 10, headY - 6, 1.8, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath();
+      ctx.arc(headX + 10, headY - 6, 1.8, 0, Math.PI * 2);
+      ctx.fill();
 
-      ctx.shadowBlur = 6; ctx.shadowColor = 'rgba(100,150,255,0.06)';
-      ctx.strokeStyle = '#f0f4fc'; ctx.lineWidth = 5.5;
+      ctx.shadowBlur = 6;
+      ctx.shadowColor = 'rgba(100,150,255,0.06)';
+      ctx.strokeStyle = '#f0f4fc';
+      ctx.lineWidth = 5.5;
       drawLimb(hipX, hipY, rHip, rKnee, uLeg, lLeg);
       drawLimb(shX, shY, lSh, lElbow, uArm, lArm);
       drawLimb(shX, shY, rSh, rElbow, uArm, lArm);
 
-      ctx.shadowBlur = 0; ctx.globalAlpha = 0.2;
-      ctx.strokeStyle = '#8aa8dd'; ctx.lineWidth = 1.8;
+      ctx.shadowBlur = 0;
+      ctx.globalAlpha = 0.2;
+      ctx.strokeStyle = '#8aa8dd';
+      ctx.lineWidth = 1.8;
       for (let i = 0; i < 5; i++) {
         const ox = -28 - i * 14;
         const oy = -12 + i * 7 + Math.sin(t + i) * 4;
-        ctx.beginPath(); ctx.moveTo(cx + ox, cy - 30 + oy);
-        ctx.lineTo(cx + ox - 18, cy - 30 + oy + 3); ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(cx + ox, cy - 30 + oy);
+        ctx.lineTo(cx + ox - 18, cy - 30 + oy + 3);
+        ctx.stroke();
       }
       ctx.globalAlpha = 1;
 
-      ctx.shadowBlur = 30; ctx.shadowColor = 'rgba(0,0,0,0.2)';
+      ctx.shadowBlur = 30;
+      ctx.shadowColor = 'rgba(0,0,0,0.2)';
       ctx.fillStyle = 'rgba(0,0,0,0.1)';
-      ctx.beginPath(); ctx.ellipse(cx, GROUND_Y + 6, 34, 8, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(cx, GROUND_Y + 6, 34, 8, 0, 0, Math.PI * 2);
+      ctx.fill();
       ctx.shadowBlur = 0;
     }
 
     function drawStreet() {
       const grad = ctx.createLinearGradient(0, GROUND_Y, 0, H);
-      grad.addColorStop(0, '#1a2332'); grad.addColorStop(0.3, '#141c2b'); grad.addColorStop(1, '#0b111e');
-      ctx.fillStyle = grad; ctx.fillRect(0, GROUND_Y, W, H - GROUND_Y);
-      ctx.strokeStyle = 'rgba(255,255,255,0.04)'; ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.moveTo(0, GROUND_Y + 4); ctx.lineTo(W, GROUND_Y + 4); ctx.stroke();
-      ctx.strokeStyle = 'rgba(255,255,200,0.08)'; ctx.lineWidth = 2;
-      ctx.setLineDash([28, 34]); ctx.lineDashOffset = scrollOffset * 0.5;
-      ctx.beginPath(); ctx.moveTo(0, GROUND_Y + 28); ctx.lineTo(W, GROUND_Y + 28); ctx.stroke();
+      grad.addColorStop(0, '#1a2332');
+      grad.addColorStop(0.3, '#141c2b');
+      grad.addColorStop(1, '#0b111e');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, GROUND_Y, W, H - GROUND_Y);
+      ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(0, GROUND_Y + 4);
+      ctx.lineTo(W, GROUND_Y + 4);
+      ctx.stroke();
+      ctx.strokeStyle = 'rgba(255,255,200,0.08)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([28, 34]);
+      ctx.lineDashOffset = scrollOffset * 0.5;
+      ctx.beginPath();
+      ctx.moveTo(0, GROUND_Y + 28);
+      ctx.lineTo(W, GROUND_Y + 28);
+      ctx.stroke();
       ctx.setLineDash([]);
-      ctx.strokeStyle = 'rgba(255,255,255,0.02)'; ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.moveTo(0, GROUND_Y + 2); ctx.lineTo(W, GROUND_Y + 2); ctx.stroke();
+      ctx.strokeStyle = 'rgba(255,255,255,0.02)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(0, GROUND_Y + 2);
+      ctx.lineTo(W, GROUND_Y + 2);
+      ctx.stroke();
     }
 
     const stars = [];
     for (let i = 0; i < 120; i++) {
-      stars.push({ x: Math.random() * W, y: Math.random() * (GROUND_Y - 40),
-        r: 0.4 + Math.random() * 1.2, a: 0.2 + Math.random() * 0.6,
-        twinkleSpeed: 0.01 + Math.random() * 0.03 });
+      stars.push({
+        x: Math.random() * W,
+        y: Math.random() * (GROUND_Y - 40),
+        r: 0.4 + Math.random() * 1.2,
+        a: 0.2 + Math.random() * 0.6,
+        twinkleSpeed: 0.01 + Math.random() * 0.03
+      });
     }
 
     function drawStars() {
       stars.forEach(s => {
         const brightness = s.a * (0.7 + 0.3 * Math.sin(Date.now() * s.twinkleSpeed + s.x));
         ctx.fillStyle = `rgba(255, 255, 240, ${brightness})`;
-        ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fill();
       });
     }
 
     function drawMoon() {
       ctx.fillStyle = 'rgba(240, 235, 210, 0.12)';
-      ctx.shadowColor = 'rgba(200, 200, 180, 0.06)'; ctx.shadowBlur = 60;
-      ctx.beginPath(); ctx.arc(W - 80, 60, 45, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = 'rgba(240, 235, 210, 0.06)'; ctx.shadowBlur = 80;
-      ctx.beginPath(); ctx.arc(W - 80, 60, 70, 0, Math.PI * 2); ctx.fill();
+      ctx.shadowColor = 'rgba(200, 200, 180, 0.06)';
+      ctx.shadowBlur = 60;
+      ctx.beginPath();
+      ctx.arc(W - 80, 60, 45, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = 'rgba(240, 235, 210, 0.06)';
+      ctx.shadowBlur = 80;
+      ctx.beginPath();
+      ctx.arc(W - 80, 60, 70, 0, Math.PI * 2);
+      ctx.fill();
       ctx.shadowBlur = 0;
     }
 
@@ -492,71 +618,112 @@
     function transitionToNocturne() {
       if (transitionTriggered) return;
       transitionTriggered = true;
+
       const stickmanScene = document.getElementById('scene-stickman');
       stickmanScene.classList.add('hidden');
+
       const nocturneScene = document.getElementById('scene-nocturne');
       nocturneScene.classList.add('active');
-      setTimeout(() => { initNocturne(); }, 400);
+
+      setTimeout(() => {
+        initNocturne();
+      }, 400);
     }
 
     function animateStickman(timestamp) {
       const deltaTime = prevTimestamp ? Math.min((timestamp - prevTimestamp) / 1000, 0.05) : 0.016;
       prevTimestamp = timestamp;
+
       phaseTimer += deltaTime;
 
       if (phaseTimer >= TOTAL_CYCLE && !transitionTriggered) {
         transitionToNocturne();
-        if (transitionTriggered) { drawStickmanFrame(); return; }
+        if (transitionTriggered) {
+          drawStickmanFrame();
+          return;
+        }
       }
 
       if (phaseTimer < ENTER_DURATION) {
         const progress = phaseTimer / ENTER_DURATION;
         const easedProgress = easeInOut(progress);
-        manX = -100 + ((W / 2 - 20) - (-100)) * easedProgress;
+        const startX = -100;
+        const endX = W / 2 - 20;
+        manX = startX + (endX - startX) * easedProgress;
       } else if (phaseTimer < ENTER_DURATION + RUN_DURATION) {
         manX = W / 2 - 20;
       } else if (phaseTimer < TOTAL_CYCLE) {
         const progress = (phaseTimer - ENTER_DURATION - RUN_DURATION) / EXIT_DURATION;
         const easedProgress = easeInOut(progress);
-        manX = (W / 2 - 20) + ((W + 100) - (W / 2 - 20)) * easedProgress;
+        const startX = W / 2 - 20;
+        const endX = W + 100;
+        manX = startX + (endX - startX) * easedProgress;
       }
 
       scrollOffset += BUILDING_SPEED_NEAR;
       time += 0.065;
+
       drawStickmanFrame();
 
-      if (!transitionTriggered) requestAnimationFrame(animateStickman);
+      if (!transitionTriggered) {
+        requestAnimationFrame(animateStickman);
+      }
     }
 
     function drawStickmanFrame() {
       ctx.clearRect(0, 0, W, H);
+
       const skyGrad = ctx.createLinearGradient(0, 0, 0, GROUND_Y);
-      skyGrad.addColorStop(0, '#050b16'); skyGrad.addColorStop(0.5, '#0b1424'); skyGrad.addColorStop(1, '#131e30');
-      ctx.fillStyle = skyGrad; ctx.fillRect(0, 0, W, GROUND_Y);
-      drawStars(); drawMoon();
+      skyGrad.addColorStop(0, '#050b16');
+      skyGrad.addColorStop(0.5, '#0b1424');
+      skyGrad.addColorStop(1, '#131e30');
+      ctx.fillStyle = skyGrad;
+      ctx.fillRect(0, 0, W, GROUND_Y);
+
+      drawStars();
+      drawMoon();
 
       farBuildings.forEach(b => {
         let drawX = b.x - scrollOffset * 0.35;
-        if (drawX < -b.width) { drawX += FAR_LOOP; b.x += FAR_LOOP; }
+        if (drawX < -b.width) {
+          drawX += FAR_LOOP;
+          b.x += FAR_LOOP;
+        }
         b.draw(drawX);
       });
+
       nearBuildings.forEach(b => {
         let drawX = b.x - scrollOffset;
-        if (drawX < -b.width) { drawX += NEAR_LOOP; b.x += NEAR_LOOP; }
+        if (drawX < -b.width) {
+          drawX += NEAR_LOOP;
+          b.x += NEAR_LOOP;
+        }
         b.draw(drawX);
       });
-      drawStreet();
-      drawStickman(manX, GROUND_Y - 20, time);
-      updateJewels(); drawJewels();
 
-      ctx.globalAlpha = 0.06; ctx.fillStyle = '#8aa8dd';
+      drawStreet();
+
+      const manY = GROUND_Y - 20;
+      drawStickman(manX, manY, time);
+
+      updateJewels();
+      drawJewels();
+
+      ctx.globalAlpha = 0.06;
+      ctx.fillStyle = '#8aa8dd';
       for (let i = 0; i < 6; i++) {
         const px = (manX - 40 - i * 18 + Math.sin(Date.now() / 600 + i * 2) * 6) % W;
         const py = GROUND_Y - 6 - i * 5 + Math.sin(Date.now() / 500 + i * 1.5) * 3;
-        ctx.beginPath(); ctx.arc(px, py, 4 + i * 1.5, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath();
+        ctx.arc(px, py, 4 + i * 1.5, 0, Math.PI * 2);
+        ctx.fill();
       }
       ctx.globalAlpha = 1;
     }
+
+    // ────────────────────────────────────────────────────────────────
+    //  SCENE 2: NOCTURNE
+    // ────────────────────────────────────────────────────────────────
 
     let nocturneInitialized = false;
 
@@ -573,15 +740,19 @@
       const dustContainer = document.getElementById('dustContainer');
       const instruction = document.getElementById('instruction');
 
-      let lampOn = false, isTurningOn = false, turnOnTimeout = null;
+      let lampOn = false;
+      let isTurningOn = false;
+      let turnOnTimeout = null;
 
       const starsContainer = document.getElementById('stars');
       for (let i = 0; i < 100; i++) {
         const star = document.createElement('div');
         star.className = 'star';
         const size = 0.6 + Math.random() * 2.0;
-        star.style.width = size + 'px'; star.style.height = size + 'px';
-        star.style.left = Math.random() * 100 + '%'; star.style.top = Math.random() * 90 + '%';
+        star.style.width = size + 'px';
+        star.style.height = size + 'px';
+        star.style.left = Math.random() * 100 + '%';
+        star.style.top = Math.random() * 90 + '%';
         star.style.setProperty('--duration', (2 + Math.random() * 5) + 's');
         star.style.animationDelay = Math.random() * 6 + 's';
         star.style.opacity = 0.2 + Math.random() * 0.6;
@@ -590,48 +761,69 @@
 
       const rainCanvas = document.getElementById('rainCanvas');
       const rctx = rainCanvas.getContext('2d');
-      let rW, rH, drops = [];
+      let rW, rH;
+      let drops = [];
 
       function resizeRain() {
         const rect = rainCanvas.parentElement.getBoundingClientRect();
-        rainCanvas.width = rect.width; rainCanvas.height = rect.height;
-        rW = rainCanvas.width; rH = rainCanvas.height; createDrops();
+        rainCanvas.width = rect.width;
+        rainCanvas.height = rect.height;
+        rW = rainCanvas.width;
+        rH = rainCanvas.height;
+        createDrops();
       }
+
       function createDrops() {
         const count = Math.floor((rW * rH) / 2600);
         drops = [];
         for (let i = 0; i < count; i++) {
-          drops.push({ x: Math.random() * rW, y: Math.random() * rH - rH,
-            speed: 5 + Math.random() * 16, length: 12 + Math.random() * 26,
-            opacity: 0.10 + Math.random() * 0.32, width: 0.4 + Math.random() * 1.5,
-            wind: -0.5 + Math.random() * 1.1 });
+          drops.push({
+            x: Math.random() * rW,
+            y: Math.random() * rH - rH,
+            speed: 5 + Math.random() * 16,
+            length: 12 + Math.random() * 26,
+            opacity: 0.10 + Math.random() * 0.32,
+            width: 0.4 + Math.random() * 1.5,
+            wind: -0.5 + Math.random() * 1.1,
+          });
         }
       }
+
       function drawRain() {
         rctx.clearRect(0, 0, rW, rH);
         for (const d of drops) {
-          rctx.beginPath(); rctx.moveTo(d.x, d.y);
+          rctx.beginPath();
+          rctx.moveTo(d.x, d.y);
           rctx.lineTo(d.x + d.wind * d.length * 0.25, d.y + d.length);
           rctx.strokeStyle = `rgba(180, 205, 240, ${d.opacity})`;
-          rctx.lineWidth = d.width; rctx.stroke();
+          rctx.lineWidth = d.width;
+          rctx.stroke();
         }
         for (const d of drops) {
-          d.y += d.speed; d.x += d.wind * 0.3;
+          d.y += d.speed;
+          d.x += d.wind * 0.3;
           if (d.y > rH + 30) {
-            d.y = -20 - Math.random() * 40; d.x = Math.random() * rW;
-            d.speed = 5 + Math.random() * 16; d.length = 12 + Math.random() * 26;
-            d.opacity = 0.10 + Math.random() * 0.32; d.wind = -0.5 + Math.random() * 1.1;
+            d.y = -20 - Math.random() * 40;
+            d.x = Math.random() * rW;
+            d.speed = 5 + Math.random() * 16;
+            d.length = 12 + Math.random() * 26;
+            d.opacity = 0.10 + Math.random() * 0.32;
+            d.wind = -0.5 + Math.random() * 1.1;
           }
           if (d.x < -30) d.x = rW + 30;
           if (d.x > rW + 30) d.x = -30;
         }
         const grad = rctx.createLinearGradient(0, rH * 0.7, 0, rH);
-        grad.addColorStop(0, 'rgba(40, 55, 80, 0)'); grad.addColorStop(1, 'rgba(30, 45, 70, 0.10)');
-        rctx.fillStyle = grad; rctx.fillRect(0, rH * 0.7, rW, rH * 0.3);
+        grad.addColorStop(0, 'rgba(40, 55, 80, 0)');
+        grad.addColorStop(1, 'rgba(30, 45, 70, 0.10)');
+        rctx.fillStyle = grad;
+        rctx.fillRect(0, rH * 0.7, rW, rH * 0.3);
         requestAnimationFrame(drawRain);
       }
+
       window.addEventListener('resize', resizeRain);
-      resizeRain(); drawRain();
+      resizeRain();
+      drawRain();
 
       for (let i = 0; i < 35; i++) {
         const p = document.createElement('div');
@@ -648,23 +840,32 @@
 
       function turnLampOn() {
         if (lampOn || isTurningOn) return;
-        isTurningOn = true; lampOn = true;
+        isTurningOn = true;
+        lampOn = true;
         instruction.classList.add('hidden');
         room.classList.remove('off');
 
         const steps = [
-          { delay: 80, opacity: 0.3 }, { delay: 160, opacity: 0.6 },
-          { delay: 240, opacity: 0.3 }, { delay: 320, opacity: 0.8 },
-          { delay: 400, opacity: 1.0 }
+          { delay: 80, opacity: 0.3 },
+          { delay: 160, opacity: 0.6 },
+          { delay: 240, opacity: 0.3 },
+          { delay: 320, opacity: 0.8 },
+          { delay: 400, opacity: 1.0 },
         ];
         let index = 0;
+
         function applyStep() {
           if (index >= steps.length) {
-            bulb.classList.add('on'); glow.classList.add('on');
-            tableGlow.classList.add('on'); shadeGlow.classList.add('on');
-            dustContainer.classList.remove('off'); isTurningOn = false; return;
+            bulb.classList.add('on');
+            glow.classList.add('on');
+            tableGlow.classList.add('on');
+            shadeGlow.classList.add('on');
+            dustContainer.classList.remove('off');
+            isTurningOn = false;
+            return;
           }
-          const step = steps[index]; const progress = step.opacity;
+          const step = steps[index];
+          const progress = step.opacity;
           bulb.style.background =
             `radial-gradient(circle, rgba(255,251,212,${progress * 0.6}) 0%, ` +
             `rgba(255,214,107,${progress * 0.5}) 25%, ` +
@@ -676,13 +877,17 @@
             `0 0 ${30 + 40 * progress}px rgba(255,157,46,${progress * 0.3})`;
           glow.style.opacity = progress * 0.9;
           glow.style.background =
-            `radial-gradient(circle, rgba(255,210,130,${progress * 0.35}) 0%, ` +
+            `radial-gradient(circle, ` +
+            `rgba(255,210,130,${progress * 0.35}) 0%, ` +
             `rgba(255,180,90,${progress * 0.14}) 35%, ` +
-            `rgba(255,150,60,${progress * 0.05}) 60%, transparent 80%)`;
+            `rgba(255,150,60,${progress * 0.05}) 60%, ` +
+            `transparent 80%)`;
           tableGlow.style.opacity = progress * 0.5;
           tableGlow.style.background =
-            `radial-gradient(ellipse at 65% 100%, rgba(255,200,140,${progress * 0.14}) 0%, ` +
-            `rgba(255,180,120,${progress * 0.06}) 40%, transparent 70%)`;
+            `radial-gradient(ellipse at 65% 100%, ` +
+            `rgba(255,200,140,${progress * 0.14}) 0%, ` +
+            `rgba(255,180,120,${progress * 0.06}) 40%, ` +
+            `transparent 70%)`;
           shadeGlow.style.opacity = progress * 0.6;
           dustContainer.style.opacity = 0.08 + progress * 0.35;
           index++;
@@ -691,35 +896,55 @@
         }
         applyStep();
         setTimeout(() => {
-          bulb.classList.add('on'); glow.classList.add('on');
-          tableGlow.classList.add('on'); shadeGlow.classList.add('on');
+          bulb.classList.add('on');
+          glow.classList.add('on');
+          tableGlow.classList.add('on');
+          shadeGlow.classList.add('on');
         }, 500);
       }
 
       function turnLampOff() {
         if (!lampOn && !isTurningOn) return;
-        if (turnOnTimeout) { clearTimeout(turnOnTimeout); turnOnTimeout = null; }
-        isTurningOn = false; lampOn = false;
+        if (turnOnTimeout) {
+          clearTimeout(turnOnTimeout);
+          turnOnTimeout = null;
+        }
+        isTurningOn = false;
+        lampOn = false;
         room.classList.add('off');
-        bulb.classList.remove('on'); glow.classList.remove('on');
-        tableGlow.classList.remove('on'); shadeGlow.classList.remove('on');
-        bulb.style.background = ''; bulb.style.boxShadow = '';
-        glow.style.opacity = '0'; glow.style.background = '';
-        tableGlow.style.opacity = '0'; tableGlow.style.background = '';
+        bulb.classList.remove('on');
+        glow.classList.remove('on');
+        tableGlow.classList.remove('on');
+        shadeGlow.classList.remove('on');
+        bulb.style.background = '';
+        bulb.style.boxShadow = '';
+        glow.style.opacity = '0';
+        glow.style.background = '';
+        tableGlow.style.opacity = '0';
+        tableGlow.style.background = '';
         shadeGlow.style.opacity = '0';
         dustContainer.style.opacity = '0.06';
         instruction.classList.remove('hidden');
       }
 
       function toggleLamp() {
-        if (lampOn) turnLampOff(); else turnLampOn();
+        if (lampOn) {
+          turnLampOff();
+        } else {
+          turnLampOn();
+        }
         chain.classList.add('pull');
-        setTimeout(() => { chain.classList.remove('pull'); }, 150);
+        setTimeout(() => {
+          chain.classList.remove('pull');
+        }, 150);
       }
 
       chain.addEventListener('click', toggleLamp);
       document.addEventListener('keydown', (e) => {
-        if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggleLamp(); }
+        if (e.key === ' ' || e.key === 'Enter') {
+          e.preventDefault();
+          toggleLamp();
+        }
       });
 
       setInterval(() => {
@@ -728,21 +953,29 @@
           const flick = 0.5 + Math.random() * 0.5;
           bulb.style.opacity = flick;
           glow.style.opacity = 0.4 + flick * 0.5;
-          setTimeout(() => { bulb.style.opacity = '1'; glow.style.opacity = '1'; }, 60 + Math.random() * 120);
+          setTimeout(() => {
+            bulb.style.opacity = '1';
+            glow.style.opacity = '1';
+          }, 60 + Math.random() * 120);
         }
       }, 3000);
+
+      // ─── MENU BUTTON HANDLERS (connect to game functions) ───
 
       const continueBtn = document.getElementById('continueGameBtn');
       const newGameBtn = document.getElementById('newGameBtn');
       const howToPlayBtn = document.getElementById('howToPlayBtn');
 
+      // Show/hide Continue based on saved game
       window.refreshContinueButton = function() {
         const saved = localStorage.getItem('whitbyConspiracySave');
         if (!continueBtn) return;
         if (saved) {
-          continueBtn.style.opacity = '1'; continueBtn.style.pointerEvents = 'auto';
+          continueBtn.style.opacity = '1';
+          continueBtn.style.pointerEvents = 'auto';
         } else {
-          continueBtn.style.opacity = '0.4'; continueBtn.style.pointerEvents = 'none';
+          continueBtn.style.opacity = '0.4';
+          continueBtn.style.pointerEvents = 'none';
         }
       };
       window.refreshContinueButton();
@@ -750,17 +983,26 @@
       if (continueBtn) {
         continueBtn.addEventListener('click', function(e) {
           e.preventDefault();
-          if (typeof window.continueGame === 'function') window.continueGame();
-          else window.location.reload();
+          if (typeof window.continueGame === 'function') {
+            window.continueGame();
+          } else {
+            // fallback
+            window.location.reload();
+          }
         });
       }
+
       if (newGameBtn) {
         newGameBtn.addEventListener('click', function(e) {
           e.preventDefault();
-          if (typeof window.startNewGame === 'function') window.startNewGame();
-          else window.location.reload();
+          if (typeof window.startNewGame === 'function') {
+            window.startNewGame();
+          } else {
+            window.location.reload();
+          }
         });
       }
+
       if (howToPlayBtn) {
         howToPlayBtn.addEventListener('click', function(e) {
           e.preventDefault();
@@ -768,6 +1010,7 @@
           if (modal) modal.style.display = 'flex';
         });
       }
+
       console.log('%c🌙 Nocturne — pull the chain to begin...', 'color: #d7b477; font-size: 15px;');
     }
 
@@ -776,9 +1019,14 @@
       const cw = container.clientWidth || window.innerWidth;
       const ch = container.clientHeight || window.innerHeight;
       const aspect = 800 / 500;
-      let w = Math.min(cw * 0.96, 800); let h = w / aspect;
-      if (h > ch * 0.88) { h = ch * 0.88; w = h * aspect; }
-      canvas.style.width = w + 'px'; canvas.style.height = h + 'px';
+      let w = Math.min(cw * 0.96, 800);
+      let h = w / aspect;
+      if (h > ch * 0.88) {
+        h = ch * 0.88;
+        w = h * aspect;
+      }
+      canvas.style.width = w + 'px';
+      canvas.style.height = h + 'px';
     }
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();

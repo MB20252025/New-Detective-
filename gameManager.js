@@ -204,6 +204,7 @@ class GameManager {
         this.usbUnlocked = true;
       }
 
+      // One round per bonus solve
       this.startQuestionRound(idx + 1);
 
       var bonusNotes = {
@@ -383,16 +384,23 @@ class GameManager {
   }
 
   updateUI() {
-    document.getElementById("prisonYears").innerText = this.prisonYears;
-    document.getElementById("hintsLeft").innerText = this.hintsLeft;
-    document.getElementById("solvedMain").innerText = this.solvedMainPuzzles + '/' + this.mainPuzzles.length;
+    var prisonEl = document.getElementById("prisonYears");
+    if (prisonEl) prisonEl.innerText = this.prisonYears;
+    var hintsEl = document.getElementById("hintsLeft");
+    if (hintsEl) hintsEl.innerText = this.hintsLeft;
+    var solvedEl = document.getElementById("solvedMain");
+    if (solvedEl) solvedEl.innerText = this.solvedMainPuzzles + '/' + this.mainPuzzles.length;
     for (var i = 0; i < this.codeDigits.length; i++) {
-      document.getElementById('code' + i).innerText = this.codeDigits[i];
+      var codeEl = document.getElementById('code' + i);
+      if (codeEl) codeEl.innerText = this.codeDigits[i];
     }
-    if (this.cryptogramSolved && !this.caseClosed) {
-      document.getElementById("accuseBtn").style.display = "inline-block";
-    } else {
-      document.getElementById("accuseBtn").style.display = "none";
+    var accuseEl = document.getElementById("accuseBtn");
+    if (accuseEl) {
+      if (this.cryptogramSolved && !this.caseClosed) {
+        accuseEl.style.display = "inline-block";
+      } else {
+        accuseEl.style.display = "none";
+      }
     }
     if (typeof updateTabNotifications === 'function') updateTabNotifications();
     if (typeof showVaultTabIfUnlocked === 'function') showVaultTabIfUnlocked();
@@ -400,6 +408,7 @@ class GameManager {
 
   refreshCurrentTab() {
     if (this.currentTab === 'casefile') renderCaseFile();
+    else if (this.currentTab === 'mypc') renderMyPcTab();
     else if (this.currentTab === 'interviews') renderInterviews();
     else if (this.currentTab === 'mainpuzzles') renderMainPuzzles();
     else if (this.currentTab === 'bonuspuzzles') renderBonusPuzzles();
@@ -553,6 +562,7 @@ class GameManager {
     this.suspectNotificationRead = true;
     this.hasNewInterviewQuestions = false;
     this.caseClosed = false;
+    this.currentTab = 'casefile';
     this.folderNotifications = {
       detectiveNotes: true,
       interviewResults: false,
@@ -591,8 +601,10 @@ class GameManager {
     }
     var s1 = this.suspects.find(s => s.id === 's1');
     if (s1) s1.unlocked = true;
-    document.querySelector('.tab[data-tab="mainpuzzles"]').classList.add('locked');
-    document.querySelector('.tab[data-tab="bonuspuzzles"]').classList.add('locked');
+    var mpEl = document.querySelector('.tab[data-tab="mainpuzzles"]');
+    var bpEl = document.querySelector('.tab[data-tab="bonuspuzzles"]');
+    if (mpEl) mpEl.classList.add('locked');
+    if (bpEl) bpEl.classList.add('locked');
     localStorage.removeItem('whitbyConspiracySave');
     this.updateUI();
   }

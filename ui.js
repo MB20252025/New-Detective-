@@ -42,6 +42,9 @@ function serializeGameData(game) {
   };
 }
 
+// ============================================================
+//  OPTION HELPERS
+// ============================================================
 function normaliseKey(str) {
   if (str == null) return '';
   var s = String(str);
@@ -124,6 +127,174 @@ function computePuzzleMeta(puzzle) {
     }
   }
   return { sanitised: sanitised, correctIndex: correctIndex };
+}
+
+// ============================================================
+//  CASE FILE TAB — the folder grid
+// ============================================================
+function generateFolderContents() {
+  // Detective notes preview (used only as a fallback if the casebook isn't available)
+  var notesHtml = '<div><h3>🔍 DETECTIVE NOTES (CASE LOG)</h3><ul style="padding-left:22px;">';
+  if (!game.detectiveNotes || game.detectiveNotes.length === 0) {
+    notesHtml += '<li>No notes yet. Progress through the investigation.</li>';
+  } else {
+    game.detectiveNotes.forEach(function(n) {
+      if (n && n.trim()) notesHtml += '<li style="margin:6px 0;">' + n + '</li>';
+    });
+  }
+  notesHtml += '</ul></div>';
+
+  var interviewResults = '📋 Interview transcripts — click a suspect to review what they said.';
+
+  var puzzleLog = '<div><h3>🧩 PUZZLE LOG</h3>';
+  puzzleLog += '<p><strong>Main Puzzles:</strong></p><ul style="padding-left:22px;">';
+  for (var i = 0; i < game.mainPuzzles.length; i++) {
+    puzzleLog += '<li>' + (i + 1) + '. ' + game.mainPuzzles[i].title + ' — ' +
+      (game.mainSolved[i] ? '✅ Solved' : '⬜ Not yet') + '</li>';
+  }
+  puzzleLog += '</ul><p><strong>Bonus Puzzles:</strong></p><ul style="padding-left:22px;">';
+  for (var j = 0; j < game.bonusPuzzles.length; j++) {
+    puzzleLog += '<li>' + (j + 1) + '. ' + game.bonusPuzzles[j].title + ' — ' +
+      (game.bonusSolved[j] ? '✅ Solved' : '⬜ Not yet') + '</li>';
+  }
+  puzzleLog += '</ul>';
+  if (game.solvedMainPuzzles >= game.mainPuzzles.length) {
+    puzzleLog += '<p>Cryptogram: ' + (game.cryptogramSolved ? '✅ Solved' : '🔒 Locked') + '</p>';
+  }
+  puzzleLog += '</div>';
+
+  var suspectsFolder = '<div><h3>👥 SUSPECT PROFILES</h3>';
+  game.suspects.forEach(function(s, idx) {
+    if (idx === 0 || game.initialInterviewDone) {
+      suspectsFolder += '<p><strong>' + s.emoji + ' ' + s.name + '</strong> — ' +
+        (s.unlocked ? 'Available for questioning.' : 'Not yet available.') + '</p>';
+    }
+  });
+  suspectsFolder += '</div>';
+
+  return { notes: notesHtml, interviewResults: interviewResults, puzzleLog: puzzleLog, suspectsFolder: suspectsFolder };
+}
+
+function renderCaseFile() {
+  var panel = document.getElementById('content');
+  if (!panel) return;
+
+  var cryptogramUnlocked = (game.mainSolved[6] === true);
+
+  panel.innerHTML =
+    '<div class="folder-grid">' +
+      '<div class="folder-card" data-folder="detectiveNotes"><span class="folder-icon">📓</span><div class="folder-title">Detective Notes</div></div>' +
+      '<div class="folder-card" data-folder="interviewResults"><span class="folder-icon">🗣️</span><div class="folder-title">Interview Results</div></div>' +
+      '<div class="folder-card" data-folder="puzzleLog"><span class="folder-icon">🧩</span><div class="folder-title">Puzzle Log</div></div>' +
+      '<div class="folder-card" data-folder="suspects"><span class="folder-icon">👥</span><div class="folder-title">Suspects</div></div>' +
+      '<div class="folder-card" data-folder="newspaper"><span class="folder-icon">📰</span><div class="folder-title">Daily Newspaper</div></div>' +
+      '<div class="folder-card ' + (cryptogramUnlocked ? '' : 'locked-folder') + '" data-folder="cryptogram"><span class="folder-icon">🔐</span><div class="folder-title">Cryptogram</div></div>' +
+      '<div class="folder-card" data-folder="mainmenu"><span class="folder-icon">🏠</span><div class="folder-title">Main Menu</div></div>' +
+    '</div>';
+
+  panel.querySelectorAll('.folder-card').forEach(function(card) {
+    card.addEventListener('click', function() {
+      var folder = card.getAttribute('data-folder');
+      var folders = generateFolderContents();
+
+      if (folder === 'detectiveNotes') {
+        // Open the casebook modal if available
+        if (typeof showDetectiveNotesModal === 'function') {
+          showDetectiveNotesModal();
+        } else {
+          showModal("📓 Detective Notes", folders.notes);
+        }
+      }
+      else if (folder === 'interviewResults') {
+        showInterviewResults();
+      }
+      else if (folder === 'puzzleLog') {
+        showModal("🧩 Puzzle Log", folders.puzzleLog);
+      }
+      else if (folder === 'suspects') {
+        showModal("👥 Suspects", folders.suspectsFolder);
+      }
+      else if (folder === 'newspaper') {
+        // Switch to the Newspaper tab
+        if (game) {
+          game.currentTab = 'newspaper';
+          var newspaperTab = document.querySelector('.tab[data-tab="newspaper"]');
+          if (newspaperTab) {
+            document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
+            newspaperTab.classList.add('active');
+          }
+          renderNewspaperTab();
+        }
+      }
+      else if (folder === 'cryptogram') {
+        if (cryptogramUnlocked) {
+          if (typeof showCryptogramModal === 'function') showCryptogramModal();
+        } else {
+          alert("🔒 This folder is locked. Solve all main puzzles to unlock the final message.");
+        }
+      }
+      else if (folder === 'mainmenu') {
+        if (game) game.saveToLocalStorage();
+        document.getElementById('gameWrapper').style.display = 'none';
+        document.getElementById('startMenu').style.display = 'flex';
+        document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
+        var mp = document.querySelector('.tab[data-tab="casefile"]');
+        if (mp) mp.classList.add('active');
+        if (game) game.currentTab = 'casefile';
+        if (typeof window.refreshContinueButton === 'function') window.refreshContinueButton();
+      }
+    });
+  });
+}
+
+function showInterviewResults() {
+  var available = ['s1'];
+  if (game.initialInterviewDone) available.push('s2', 's3');
+
+  var html = '<div><h3>Select a suspect to view their interview transcript:</h3>';
+  available.forEach(function(sid) {
+    var suspect = game.suspects.find(function(s){ return s.id === sid; });
+    if (!suspect) return;
+    var asked = game.askedQuestions[sid] || [];
+    var stress = game.suspectStress[sid] || 0;
+    var stressColor = stress > 80 ? '#d9534f' : (stress > 50 ? '#f0ad4e' : '#5cb85c');
+    html += '<div class="suspect-folder-item" data-suspect="' + sid + '" style="margin-bottom:16px; cursor:pointer;">' +
+      '<div style="display:flex; justify-content:space-between; align-items:center;">' +
+        '<strong>' + suspect.emoji + ' ' + suspect.name + '</strong>' +
+        '<span style="background:#2a2a2a; padding:2px 8px; border-radius:20px; font-size:0.7rem; color:#fff;">Stress: ' + stress + '%</span>' +
+      '</div>' +
+      '<div style="background:#444; border-radius:10px; height:8px; width:100%; margin:8px 0 4px;">' +
+        '<div style="background:' + stressColor + '; width:' + stress + '%; height:8px; border-radius:10px;"></div>' +
+      '</div>' +
+      '<div style="font-size:0.8rem; color:#000;">' + asked.length + ' questions answered</div>' +
+    '</div>';
+  });
+  html += '</div>';
+  showModal("📋 Interview Results", html);
+
+  setTimeout(function() {
+    document.querySelectorAll('.suspect-folder-item').forEach(function(item) {
+      item.addEventListener('click', function() {
+        var sid = item.getAttribute('data-suspect');
+        var suspect = game.suspects.find(function(s){ return s.id === sid; });
+        if (!suspect) return;
+        var asked = game.askedQuestions[sid] || [];
+        var transcript = '<div><h3>' + suspect.emoji + ' ' + suspect.name + ' — Full Transcript</h3>';
+        if (asked.length === 0) {
+          transcript += '<p>No questions asked yet.</p>';
+        } else {
+          asked.forEach(function(idx) {
+            transcript += '<div style="margin:12px 0; padding:10px; background:#fff7e8; border-radius:12px; color:#2c1c0c;">' +
+              '<div style="font-weight:bold;">❓ ' + suspect.questions[idx] + '</div>' +
+              '<div style="margin-top:6px; color:#2a5f42;">💬 ' + suspect.responses[idx] + '</div>' +
+            '</div>';
+          });
+        }
+        transcript += '</div>';
+        showModal(suspect.emoji + ' ' + suspect.name, transcript);
+      });
+    });
+  }, 50);
 }
 
 // ============================================================
@@ -512,7 +683,7 @@ function renderBonusPuzzles() {
 }
 
 // ============================================================
-//  MY PC TAB — Workstation with Casebook button
+//  MY PC TAB
 // ============================================================
 function renderMyPcTab() {
   var content = document.getElementById('content');
@@ -569,9 +740,9 @@ function renderMainMenuTab() {
     document.getElementById('gameWrapper').style.display = 'none';
     document.getElementById('startMenu').style.display = 'flex';
     document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
-    var mp = document.querySelector('.tab[data-tab="mypc"]');
-    if (mp) mp.classList.add('active');
-    if (game) game.currentTab = 'mypc';
+    var cf = document.querySelector('.tab[data-tab="casefile"]');
+    if (cf) cf.classList.add('active');
+    if (game) game.currentTab = 'casefile';
     if (typeof window.refreshContinueButton === 'function') window.refreshContinueButton();
   });
   document.getElementById('cancelReturnMenuBtn').addEventListener('click', function() {
@@ -634,6 +805,7 @@ function renderVaultTab() {
 document.addEventListener('DOMContentLoaded', function() {
   ensureVaultTab();
   showVaultTabIfUnlocked();
+
   var tabBar = document.getElementById('tabBar');
   if (tabBar) {
     tabBar.addEventListener('click', function(e) {
@@ -659,8 +831,8 @@ document.addEventListener('DOMContentLoaded', function() {
 // ============================================================
 function renderInitialTab() {
   if (!game) return;
-  game.currentTab = 'mypc';
-  renderMyPcTab();
+  game.currentTab = 'casefile';
+  renderCaseFile();
   game.updateUI();
 }
 
@@ -674,6 +846,7 @@ function askQuestion(suspectId) { if (!game) return; alert('Asking questions to 
 // ============================================================
 //  EXPOSE
 // ============================================================
+window.renderCaseFile = renderCaseFile;
 window.renderInterviews = renderInterviews;
 window.renderMainPuzzles = renderMainPuzzles;
 window.renderBonusPuzzles = renderBonusPuzzles;

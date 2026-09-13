@@ -59,7 +59,7 @@ class GameManager {
     this.suspects = [];
     this.mainPuzzles = [];
     this.bonusPuzzles = [];
-    this.currentTab = 'mypc';
+    this.currentTab = 'casefile';
     this.questionRoundTriggered = new Array(7).fill(false);
     this.lockerPuzzleState = null;
     this.interviewIntroShown = false;
@@ -204,7 +204,6 @@ class GameManager {
         this.usbUnlocked = true;
       }
 
-      // One round per bonus solve
       this.startQuestionRound(idx + 1);
 
       var bonusNotes = {
@@ -400,7 +399,7 @@ class GameManager {
   }
 
   refreshCurrentTab() {
-    if (this.currentTab === 'mypc') renderMyPcTab();
+    if (this.currentTab === 'casefile') renderCaseFile();
     else if (this.currentTab === 'interviews') renderInterviews();
     else if (this.currentTab === 'mainpuzzles') renderMainPuzzles();
     else if (this.currentTab === 'bonuspuzzles') renderBonusPuzzles();

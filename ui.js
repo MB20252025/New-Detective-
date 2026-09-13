@@ -512,30 +512,122 @@ function renderBonusPuzzles() {
 }
 
 // ============================================================
-//  MY PC TAB — Workstation with Casebook button
+//  CASE FILE TAB — four folders
 // ============================================================
 function renderMyPcTab() {
   var content = document.getElementById('content');
   if (!content) return;
+
+  var allMainsSolved = (game.solvedMainPuzzles === game.mainPuzzles.length);
+  var cryptogramUnlocked = allMainsSolved;
+
   content.innerHTML =
-    '<div style="width:100%; height:100%; min-height:500px; background:#050505; border-radius:8px; display:flex; align-items:center; justify-content:center;">' +
-      '<div style="text-align:center; color:#7a8f99; font-family:monospace; padding:40px; max-width:460px;">' +
-        '<div style="font-size:64px; margin-bottom:20px;">🖥️</div>' +
-        '<div style="font-size:1.1rem; letter-spacing:2px; color:#cdba92;">DETECTIVE WORKSTATION</div>' +
-        '<div style="font-size:0.85rem; margin-top:12px; line-height:1.5;">Open your casebook to review notes, suspects and evidence gathered during the investigation.</div>' +
-        '<button id="openCasebookBtn" style="margin-top:28px; background:#b68b5c; border:none; color:#0b1e2b; font-family:monospace; font-weight:bold; font-size:1rem; letter-spacing:2px; padding:14px 34px; border-radius:60px; cursor:pointer; box-shadow:0 5px 0 #6b4f3c;">📓 OPEN CASEBOOK</button>' +
+    '<div class="folder-grid">' +
+      '<div class="folder-card" data-folder="detectiveNotes">' +
+        '<span class="folder-icon">📓</span>' +
+        '<div class="folder-title">Detective Notes</div>' +
+      '</div>' +
+      '<div class="folder-card" data-folder="suspects">' +
+        '<span class="folder-icon">👥</span>' +
+        '<div class="folder-title">Suspects</div>' +
+      '</div>' +
+      '<div class="folder-card" data-folder="puzzleLog">' +
+        '<span class="folder-icon">🧩</span>' +
+        '<div class="folder-title">Puzzle Log</div>' +
+      '</div>' +
+      '<div class="folder-card' + (cryptogramUnlocked ? '' : ' locked-folder') + '" data-folder="cryptogram">' +
+        '<span class="folder-icon">🔐</span>' +
+        '<div class="folder-title">Cryptogram</div>' +
       '</div>' +
     '</div>';
-  var btn = document.getElementById('openCasebookBtn');
-  if (btn) {
-    btn.addEventListener('click', function() {
-      if (typeof showDetectiveNotesModal === 'function') {
-        showDetectiveNotesModal();
-      } else {
-        alert('Casebook loader not available.');
+
+  content.querySelectorAll('.folder-card').forEach(function(card) {
+    card.addEventListener('click', function() {
+      var folder = card.getAttribute('data-folder');
+
+      if (folder === 'detectiveNotes') {
+        if (typeof showDetectiveNotesModal === 'function') {
+          showDetectiveNotesModal();
+        } else {
+          alert('Casebook loader not available.');
+        }
+        return;
+      }
+
+      if (folder === 'suspects') {
+        if (typeof showSuspectsModal === 'function') {
+          showSuspectsModal();
+        } else {
+          alert('Suspects loader not available.');
+        }
+        return;
+      }
+
+      if (folder === 'puzzleLog') {
+        showPuzzleLog();
+        return;
+      }
+
+      if (folder === 'cryptogram') {
+        if (!cryptogramUnlocked) {
+          alert('🔒 This folder is locked. Solve all 7 main puzzles to unlock the final message.');
+          return;
+        }
+        if (typeof showCryptogramModal === 'function') {
+          showCryptogramModal();
+        } else {
+          alert('Cryptogram not available.');
+        }
+        return;
       }
     });
+  });
+}
+
+// ============================================================
+//  PUZZLE LOG — helper
+// ============================================================
+function showPuzzleLog() {
+  var modal = document.getElementById('infoModal');
+  var titleEl = document.getElementById('modal-title');
+  var infoEl = document.getElementById('modal-info');
+  if (!modal || !titleEl || !infoEl) return;
+
+  titleEl.textContent = '🧩 Puzzle Log';
+
+  var html = '<div style="line-height:1.7;">';
+
+  html += '<h3 style="color:#5a3f2a; font-family:Cinzel,serif; margin:0 0 10px; letter-spacing:1px;">MAIN PUZZLES</h3>';
+  for (var i = 0; i < game.mainPuzzles.length; i++) {
+    var solved = game.mainSolved[i];
+    var digit = game.codeDigits[i] || '_';
+    html += '<div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:rgba(255,255,240,0.6); border-left:4px solid ' + (solved ? '#1f6e43' : '#b69264') + '; border-radius:6px; margin-bottom:6px;">' +
+              '<span>' + (solved ? '✅' : '⬜') + ' <strong>' + (i + 1) + '.</strong> ' + game.mainPuzzles[i].title + '</span>' +
+              '<span style="font-family:monospace; font-weight:bold; color:' + (solved ? '#1f6e43' : '#999') + ';">' + (solved ? digit : '—') + '</span>' +
+            '</div>';
   }
+
+  html += '<h3 style="color:#5a3f2a; font-family:Cinzel,serif; margin:18px 0 10px; letter-spacing:1px;">BONUS PUZZLES</h3>';
+  for (var j = 0; j < game.bonusPuzzles.length; j++) {
+    var bSolved = game.bonusSolved[j];
+    html += '<div style="padding:8px 12px; background:rgba(255,255,240,0.6); border-left:4px solid ' + (bSolved ? '#1f6e43' : '#b69264') + '; border-radius:6px; margin-bottom:6px;">' +
+              (bSolved ? '✅' : '⬜') + ' <strong>' + (j + 1) + '.</strong> ' + game.bonusPuzzles[j].title +
+            '</div>';
+  }
+
+  html += '<h3 style="color:#5a3f2a; font-family:Cinzel,serif; margin:18px 0 10px; letter-spacing:1px;">FINAL CRYPTOGRAM</h3>';
+  if (game.cryptogramSolved) {
+    html += '<div style="padding:10px 14px; background:#1f6e43; color:#fff; border-radius:8px; text-align:center; font-weight:bold; letter-spacing:1px;">🔓 CRYPTOGRAM SOLVED</div>';
+  } else if (game.solvedMainPuzzles === game.mainPuzzles.length) {
+    html += '<div style="padding:10px 14px; background:#b69264; color:#fff; border-radius:8px; text-align:center; font-weight:bold; letter-spacing:1px;">📖 All digits collected — Cryptogram is ready to be decoded</div>';
+  } else {
+    html += '<div style="padding:10px 14px; background:#e8d8c0; color:#5a3f2a; border-radius:8px; text-align:center; font-weight:bold;">🔒 Solve all main puzzles to unlock the Cryptogram</div>';
+  }
+
+  html += '</div>';
+
+  infoEl.innerHTML = html;
+  modal.style.display = 'flex';
 }
 
 // ============================================================
